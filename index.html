@@ -87,7 +87,7 @@
       border-radius: 50%;
       background: #333;
       border: 2px solid #666;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 4 rgba(0,0,0,0.3);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -189,14 +189,14 @@
   </div>
 </div>
 
-<!-- 关卡选择（横向方块） -->
+<!-- 关卡选择 -->
 <div id="levelSelect" class="screen hidden">
   <h1 class="menu-title">Select Level</h1>
   <div class="level-grid" id="levelGrid">
     <div class="level-block tutorial" id="level-tutorial">T</div>
     <div class="level-block locked" id="level-1">1</div>
     <div class="level-block locked" id="level-2">2</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked" id="level-3">3</div>
     <div class="level-block locked coming-soon">敬请期待</div>
     <div class="level-block locked coming-soon">敬请期待</div>
   </div>
@@ -226,11 +226,13 @@
   const levelTutorial = document.getElementById('level-tutorial');
   const level1 = document.getElementById('level-1');
   const level2 = document.getElementById('level-2');
+  const level3 = document.getElementById('level-3');
   const comingSoonElements = document.querySelectorAll('.coming-soon');
 
-  // 本地保存：必须玩过教程才解锁1
+  // 解锁状态
   let hasDoneTutorial = localStorage.getItem('hasDoneTutorial') === 'true';
   let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
+  let unlockedLevel3 = localStorage.getItem('unlockedLevel3') === 'true';
   let savedLevel = parseInt(localStorage.getItem('savedLevel')) || 0;
 
   let lang = 'en';
@@ -238,6 +240,7 @@
   let level = savedLevel;
   let gridSize = 20;
   let speed = 280;
+  let baseSpeed = 280;
   let score = 0;
   let snake, food, direction;
   let gameLoop;
@@ -245,17 +248,17 @@
   let isPaused = false;
   let touchStartX = 0, touchStartY = 0;
 
-  // 刷新关卡锁定状态（真正锁死）
+  // 刷新关卡锁定
   function refreshLevelLock() {
-    // 1 只有完成教程才解锁
     level1.classList.toggle('locked', !hasDoneTutorial);
     level1.classList.toggle('active', hasDoneTutorial);
-    // 2 只有通关1才解锁
     level2.classList.toggle('locked', !unlockedLevel2);
     level2.classList.toggle('active', unlockedLevel2);
+    level3.classList.toggle('locked', !unlockedLevel3);
+    level3.classList.toggle('active', unlockedLevel3);
   }
 
-  // 切换“敬请期待 / Coming Soon”
+  // 敬请期待 / Coming Soon
   function updateComingSoonText() {
     const text = lang === 'en' ? 'Coming\nSoon' : '敬请\n期待';
     comingSoonElements.forEach(el => el.innerHTML = text);
@@ -263,18 +266,20 @@
 
   const langText = {
     cn: {
-      start: '开始', selectLevel: '选择关卡', back: '返回', tutorial: '教学关', level1: '第一关', level2: '第二关',
+      start: '开始', selectLevel: '选择关卡', back: '返回', tutorial: '教学关', level1: '第一关', level2: '第二关', level3: '第三关',
       chooseDevice: '选择设备', keyboard: '⌨️ 键盘', mobile: '📱 手机', keyboardGuide: '使用 ↑ ↓ ← → 移动',
       mobileGuide: '滑动屏幕移动', ok: '确定', goal: '目标：吃掉食物', notice: '注意：碰墙/碰自己即死',
+      speedNotice: '注意：吃到食物后速度会加快',
       tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
       gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
       perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
       tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停'
     },
     en: {
-      start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2',
+      start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2', level3: 'Level 3',
       chooseDevice: 'Choose Device', keyboard: '⌨️ Keyboard', mobile: '📱 Mobile', keyboardGuide: 'Use ↑ ↓ ← → to move',
       mobileGuide: 'Swipe to move', ok: 'OK', goal: 'Goal: Eat food', notice: 'Notice: Die if hit wall/self',
+      speedNotice: 'Notice: Speed increases when eating food',
       tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
       gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
       perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
@@ -307,29 +312,23 @@
     mainMenu.classList.remove('hidden');
   };
 
-  // 点击关卡：严格锁死
   levelTutorial.onclick = () => { selectLevel(0); };
-  
-  level1.onclick = () => {
-    if (hasDoneTutorial) selectLevel(1);
-  };
-
-  level2.onclick = () => {
-    if (unlockedLevel2) selectLevel(2);
-  };
+  level1.onclick = () => { if (hasDoneTutorial) selectLevel(1); };
+  level2.onclick = () => { if (unlockedLevel2) selectLevel(2); };
+  level3.onclick = () => { if (unlockedLevel3) selectLevel(3); };
 
   function selectLevel(lv) {
     level = lv;
     localStorage.setItem('savedLevel', level);
-    
     if (level === 0) {
       askSkipTutorial();
     } else {
-      chooseDevice();
+      // 非教学关，直接开始游戏，不显示设备选择
+      startGame();
     }
   }
 
-  // 只要进入教程（不管跳不跳），都解锁 Level 1
+  // 跳过教学 → 直接去 Level 1，完全不显示教学
   function askSkipTutorial() {
     const m = document.createElement('div');
     m.className = 'modal';
@@ -340,14 +339,16 @@
     `;
     document.body.appendChild(m);
     m.querySelector('#skip-yes').onclick = () => {
-      // 跳过教程 → 解锁1
       hasDoneTutorial = true;
       localStorage.setItem('hasDoneTutorial', 'true');
       document.body.removeChild(m);
-      chooseDevice();
+      
+      // 直接刷新关卡界面，然后自动进 Level 1
+      levelSelect.classList.remove('hidden');
+      refreshLevelLock();
+      selectLevel(1);
     };
     m.querySelector('#skip-no').onclick = () => {
-      // 不跳 → 正常玩，完成后也解锁1
       document.body.removeChild(m);
       chooseDevice();
     };
@@ -403,8 +404,18 @@
 
   function resetGame() {
     clearInterval(gameLoop);
-    if (level === 0) { gridSize=20; speed=280; gameBoard.classList.add('tutorial');
-    } else { gameBoard.classList.remove('tutorial'); if(level===1){gridSize=20;speed=180;}else{gridSize=23;speed=160;} }
+    gameBoard.classList.remove('tutorial');
+    if (level === 0) {
+      gridSize = 20; baseSpeed = 280;
+      gameBoard.classList.add('tutorial');
+    } else if (level === 1) {
+      gridSize = 20; baseSpeed = 180;
+    } else if (level === 2) {
+      gridSize = 20; baseSpeed = 190;
+    } else if (level === 3) {
+      gridSize = 23; baseSpeed = 160;
+    }
+    speed = baseSpeed;
     gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
     gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
     snake = [
@@ -416,32 +427,90 @@
   }
 
   function updateScore() {
-    let label = level===0 ? langText[lang].tutorial : level===1 ? langText[lang].level1 : langText[lang].level2;
+    let label;
+    if (level === 0) label = langText[lang].tutorial;
+    else if (level === 1) label = langText[lang].level1;
+    else if (level === 2) label = langText[lang].level2;
+    else label = langText[lang].level3;
     scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}`;
   }
+
   function getRandomColor(){const c=['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'];return c[Math.floor(Math.random()*c.length)];}
   function spawnFood(){let f;do{f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};}while(snake.some(s=>s.x===f.x&&s.y===f.y));return f;}
-  function moveFoodSmart(){if(level!==2||isPaused)return;const h=snake[0];const d=Math.hypot(h.x-food.x,h.y-food.y);const s=d<4?0.5:d<7?1:1.5;let dx=0,dy=0;Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){food.x=nx;food.y=ny;}}
+  function moveFoodSmart(){if(level!==3||isPaused)return;const h=snake[0];const d=Math.hypot(h.x-food.x,h.y-food.y);const s=d<4?0.5:d<7?1:1.5;let dx=0,dy=0;Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){food.x=nx;food.y=ny;}}
 
-  function update(){
-    if(isPaused||!isGameStarted)return;const h={x:snake[0].x+direction.x,y:snake[0].y+direction.y};
-    if(h.x<0||h.x>=gridSize||h.y<0||h.y>=gridSize||snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)){gameOver();return;}
-    snake.unshift(h);let a=false;if(h.x===food.x&&h.y===food.y){score+=10;updateScore();food=spawnFood();a=true;}else{snake.pop();}
-    if(level===0&&score>=40){
+  function update() {
+    if (isPaused || !isGameStarted) return;
+    const h = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+    if (h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)) {
+      gameOver(); return;
+    }
+    snake.unshift(h);
+    let ate = false;
+    if (h.x === food.x && h.y === food.y) {
+      score += 10;
+      updateScore();
+      food = spawnFood();
+      ate = true;
+
+      // Level 2 每次吃食物加速，有最低上限
+      if (level === 2) {
+        speed = Math.max(85, speed - 8);
+        startGameLoop();
+      }
+    } else {
+      snake.pop();
+    }
+
+    if (level === 0 && score >= 40) {
       hasDoneTutorial = true;
       localStorage.setItem('hasDoneTutorial','true');
-      tutorialComplete();return;
+      tutorialComplete(); return;
     }
-    if(level===1&&score>=150){
+    if (level === 1 && score >= 150) {
       unlockedLevel2 = true;
       localStorage.setItem('unlockedLevel2','true');
-      victory();return;
+      victory(); return;
     }
-    if(level===2&&score>=200){finalWin();return;}
-    if(level===2&&!a)setTimeout(moveFoodSmart,300);draw();
+    if (level === 2 && score >= 150) {
+      unlockedLevel3 = true;
+      localStorage.setItem('unlockedLevel3','true');
+      victory(); return;
+    }
+    if (level === 3 && score >= 150) {
+      finalWin(); return;
+    }
+    if (level === 3 && !ate) setTimeout(moveFoodSmart, 300);
+    draw();
   }
 
-  function draw(){gameBoard.innerHTML='';if(level===0){const t=document.createElement('div');t.className='tutorial-text';t.innerText=`${langText[lang].goal}\n${langText[lang].notice}`;gameBoard.appendChild(t);}snake.forEach((s,i)=>{const e=document.createElement('div');e.style.gridColumnStart=s.x+1;e.style.gridRowStart=s.y+1;e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';gameBoard.appendChild(e);});const f=document.createElement('div');f.style.gridColumnStart=food.x+1;f.style.gridRowStart=food.y+1;f.style.backgroundColor=food.color;f.style.border='1px solid #fff';gameBoard.appendChild(f);}
+  function draw() {
+    gameBoard.innerHTML = '';
+    // 红色提示
+    const t = document.createElement('div');
+    t.className = 'tutorial-text';
+    if (level === 0) {
+      t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
+    } else if (level === 2) {
+      t.innerText = langText[lang].speedNotice;
+    }
+    gameBoard.appendChild(t);
+
+    snake.forEach((s,i)=>{
+      const e=document.createElement('div');
+      e.style.gridColumnStart=s.x+1;
+      e.style.gridRowStart=s.y+1;
+      e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';
+      gameBoard.appendChild(e);
+    });
+    const f=document.createElement('div');
+    f.style.gridColumnStart=food.x+1;
+    f.style.gridRowStart=food.y+1;
+    f.style.backgroundColor=food.color;
+    f.style.border='1px solid #fff';
+    gameBoard.appendChild(f);
+  }
+
   function gameOver(){clearInterval(gameLoop);showModal(langText[lang].gameOver,`${langText[lang].score}: ${score}`,false,true);}
   function tutorialComplete(){clearInterval(gameLoop);showModal(langText[lang].tutorialComplete,langText[lang].nextLevel,true,false);}
   function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
@@ -466,9 +535,36 @@
   pauseBtn.onclick=togglePause;
   function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
 
-  document.addEventListener('keydown',e=>{if(e.keyCode===32){togglePause();e.preventDefault();}if(isPaused||!isGameStarted)return;const k=e.keyCode,L=37,U=38,R=39,D=40;if(k===L&&direction.x!==1)direction={x:-1,y:0};if(k===U&&direction.y!==1)direction={x:0,y:-1};if(k===R&&direction.x!==-1)direction={x:1,y:0};if(k===D&&direction.y!==-1)direction={x:0,y:1};});
-  document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;});
-  document.addEventListener('touchend',e=>{if(!isGameStarted||isPaused)return;const x=e.changedTouches[0].clientX,y=e.changedTouches[0].clientY,dx=x-touchStartX,dy=y-touchStartY;if(Math.abs(dx)>Math.abs(dy)){if(dx>20&&direction.x!==-1)direction={x:1,y:0};if(dx<-20&&direction.x!==1)direction={x:-1,y:0};}else{if(dy>20&&direction.y!==-1)direction={x:0,y:1};if(dy<-20&&direction.y!==1)direction={x:0,y:-1};}});
+  document.addEventListener('keydown',e=>{
+    if(e.keyCode===32){togglePause();e.preventDefault();}
+    if(isPaused||!isGameStarted)return;
+    const k=e.keyCode,L=37,U=38,R=39,D=40;
+    if(k===L&&direction.x!==1)direction={x:-1,y:0};
+    if(k===U&&direction.y!==1)direction={x:0,y:-1};
+    if(k===R&&direction.x!==-1)direction={x:1,y:0};
+    if(k===D&&direction.y!==-1)direction={x:0,y:1};
+  });
+
+  document.addEventListener('touchstart',e=>{
+    touchStartX=e.touches[0].clientX;
+    touchStartY=e.touches[0].clientY;
+  });
+
+  // 修复：手机/平板触屏方向正确
+  document.addEventListener('touchend',e=>{
+    if(!isGameStarted||isPaused)return;
+    const x=e.changedTouches[0].clientX;
+    const y=e.changedTouches[0].clientY;
+    const dx=x-touchStartX;
+    const dy=y-touchStartY;
+    if(Math.abs(dx)>Math.abs(dy)){
+      if(dx>20&&direction.x!==-1)direction={x:1,y:0};
+      if(dx<-20&&direction.x!==1)direction={x:-1,y:0};
+    }else{
+      if(dy<-20&&direction.y!==1)direction={x:0,y:-1}; // 上滑 ↑
+      if(dy>20&&direction.y!==-1)direction={x:0,y:1};  // 下滑 ↓
+    }
+  });
 
   setLang(lang);
 </script>
