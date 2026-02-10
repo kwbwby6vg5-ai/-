@@ -17,6 +17,64 @@
       touch-action: none;
       min-height: 100vh;
     }
+
+    .screen { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+    .hidden { display: none !important; }
+    .menu-title { font-size: 36px; color: #4CAF50; }
+    
+    .level-grid {
+      display: flex;
+      gap: 12px;
+      flex-wrap: nowrap;
+      justify-content: center;
+      margin: 10px 0 20px;
+    }
+    .level-block {
+      width: 80px; height: 80px;
+      border-radius: 12px;
+      background: #333;
+      border: 2px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .level-block.active { background: #4CAF50; border-color: #8BC34A; }
+    .level-block.tutorial { background: #2196F3; border-color: #03A9F4; }
+    .level-block.locked { background: #222; border-color: #333; color: #555; cursor: default; }
+    
+    .menu-btn {
+      padding: 12px 24px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: none;
+      background: #333;
+      color: white;
+      min-width: 180px;
+      cursor: pointer;
+    }
+    .menu-btn.primary { background: #4CAF50; }
+    .lang-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .lang-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #555;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .lang-btn.active { background: #4CAF50; }
+
     .score-row {
       display: flex;
       align-items: center;
@@ -25,8 +83,7 @@
     }
     #score { font-size: 24px; }
     #pause-btn {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 50%;
       background: #333;
       border: 2px solid #666;
@@ -54,8 +111,7 @@
     }
     .tutorial-text {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 10px; left: 10px;
       color: #f44336;
       font-size: 14px;
       font-weight: bold;
@@ -64,34 +120,7 @@
       z-index: 10;
     }
     #tips { margin-top: 10px; color: #888; text-align: center; }
-    #start-btn {
-      padding: 20px 50px;
-      border: none;
-      border-radius: 100px;
-      background: #4CAF50;
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    .lang-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
-    .lang-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      background: #555;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .lang-btn.active {
-      background: #4CAF50;
-    }
+
     .modal {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -135,10 +164,7 @@
       font-weight: bold;
       animation: flash 0.6s infinite alternate;
     }
-    @keyframes flash {
-      from { opacity: 0.4; }
-      to { opacity: 1; }
-    }
+    @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
     .final-score { font-size: 28px; margin-bottom: 20px; }
     .restart-btn {
       padding: 12px 24px;
@@ -153,83 +179,63 @@
 </head>
 <body>
 
-<div class="score-row" style="display:none;">
+<!-- 主菜单 -->
+<div id="mainMenu" class="screen">
+  <h1 class="menu-title">Snake Game</h1>
+  <button class="menu-btn primary" id="startBtn">Start</button>
+  <div class="lang-group">
+    <button class="lang-btn active" id="btn-en">English</button>
+    <button class="lang-btn" id="btn-cn">中文</button>
+  </div>
+</div>
+
+<!-- 关卡选择（横向方块） -->
+<div id="levelSelect" class="screen hidden">
+  <h1 class="menu-title">Select Level</h1>
+  <div class="level-grid" id="levelGrid">
+    <div class="level-block tutorial" id="level-tutorial">T</div>
+    <div class="level-block locked" id="level-1">1</div>
+    <div class="level-block locked" id="level-2">2</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+  </div>
+  <button class="menu-btn" id="backBtn">Back</button>
+</div>
+
+<!-- 游戏界面 -->
+<div class="score-row hidden" id="scoreRow">
   <div id="score">Score: 0</div>
   <button id="pause-btn">⏸</button>
 </div>
-<div id="game-board" style="display:none;"></div>
-<div id="tips" style="display:none;">PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause</div>
-
-<button id="start-btn">Start</button>
-<div class="lang-group">
-  <button class="lang-btn" id="btn-en">English</button>
-  <button class="lang-btn" id="btn-cn">中文</button>
-</div>
+<div id="game-board" class="hidden"></div>
+<div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause</div>
 
 <script>
   const gameBoard = document.getElementById('game-board');
-  const scoreRow = document.querySelector('.score-row');
+  const scoreRow = document.getElementById('scoreRow');
   const scoreElement = document.getElementById('score');
-  const startBtn = document.getElementById('start-btn');
   const pauseBtn = document.getElementById('pause-btn');
   const tips = document.getElementById('tips');
   const btnEn = document.getElementById('btn-en');
   const btnCn = document.getElementById('btn-cn');
+  const startBtn = document.getElementById('startBtn');
+  const backBtn = document.getElementById('backBtn');
+  const mainMenu = document.getElementById('mainMenu');
+  const levelSelect = document.getElementById('levelSelect');
+  const levelTutorial = document.getElementById('level-tutorial');
+  const level1 = document.getElementById('level-1');
+  const level2 = document.getElementById('level-2');
+  const comingSoonElements = document.querySelectorAll('.coming-soon');
 
-  const langText = {
-    cn: {
-      start: '开始',
-      chooseDevice: '选择设备',
-      keyboard: '⌨️ 键盘',
-      mobile: '📱 手机',
-      keyboardGuide: '使用 ↑ ↓ ← → 移动',
-      mobileGuide: '滑动屏幕移动',
-      ok: '确定',
-      goal: '目标：吃掉食物',
-      notice: '注意：碰墙/碰自己即死',
-      tabletNotice: '平板用户可在游玩中随意切换操作方式',
-      skipTutorial: '是否跳过教学关？',
-      tutorial: '教学关',
-      level1: '第一关',
-      level2: '第二关',
-      gameOver: '游戏结束',
-      tutorialComplete: '教学完成！',
-      victory: '恭喜过关！',
-      finalWin: '你赢了！',
-      perfect: '完美！',
-      score: '分数',
-      nextLevel: '即将进入下一关',
-      playAgain: '重新开始',
-    },
-    en: {
-      start: 'Start',
-      chooseDevice: 'Choose Device',
-      keyboard: '⌨️ Keyboard',
-      mobile: '📱 Mobile',
-      keyboardGuide: 'Use ↑ ↓ ← → to move',
-      mobileGuide: 'Swipe to move',
-      ok: 'OK',
-      goal: 'Goal: Eat food',
-      notice: 'Notice: Die if hit wall/self',
-      tabletNotice: 'Tablet users can switch control mode anytime while playing',
-      skipTutorial: 'Skip tutorial?',
-      tutorial: 'Tutorial',
-      level1: 'Level 1',
-      level2: 'Level 2',
-      gameOver: 'Game Over',
-      tutorialComplete: 'Tutorial Complete!',
-      victory: 'Victory!',
-      finalWin: 'You Win!',
-      perfect: 'Perfect!',
-      score: 'Score',
-      nextLevel: 'Next Level Soon',
-      playAgain: 'Play Again',
-    }
-  };
+  // 本地保存：必须玩过教程才解锁1
+  let hasDoneTutorial = localStorage.getItem('hasDoneTutorial') === 'true';
+  let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
+  let savedLevel = parseInt(localStorage.getItem('savedLevel')) || 0;
 
   let lang = 'en';
   let mode = null;
-  let level = 0;
+  let level = savedLevel;
   let gridSize = 20;
   let speed = 280;
   let score = 0;
@@ -237,264 +243,111 @@
   let gameLoop;
   let isGameStarted = false;
   let isPaused = false;
-  let tutorialSkipped = false;
+  let touchStartX = 0, touchStartY = 0;
 
-  let touchStartX = 0;
-  let touchStartY = 0;
-
-  function t(key) {
-    return langText[lang][key];
+  // 刷新关卡锁定状态（真正锁死）
+  function refreshLevelLock() {
+    // 1 只有完成教程才解锁
+    level1.classList.toggle('locked', !hasDoneTutorial);
+    level1.classList.toggle('active', hasDoneTutorial);
+    // 2 只有通关1才解锁
+    level2.classList.toggle('locked', !unlockedLevel2);
+    level2.classList.toggle('active', unlockedLevel2);
   }
+
+  // 切换“敬请期待 / Coming Soon”
+  function updateComingSoonText() {
+    const text = lang === 'en' ? 'Coming\nSoon' : '敬请\n期待';
+    comingSoonElements.forEach(el => el.innerHTML = text);
+  }
+
+  const langText = {
+    cn: {
+      start: '开始', selectLevel: '选择关卡', back: '返回', tutorial: '教学关', level1: '第一关', level2: '第二关',
+      chooseDevice: '选择设备', keyboard: '⌨️ 键盘', mobile: '📱 手机', keyboardGuide: '使用 ↑ ↓ ← → 移动',
+      mobileGuide: '滑动屏幕移动', ok: '确定', goal: '目标：吃掉食物', notice: '注意：碰墙/碰自己即死',
+      tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
+      gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
+      perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
+      tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停'
+    },
+    en: {
+      start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2',
+      chooseDevice: 'Choose Device', keyboard: '⌨️ Keyboard', mobile: '📱 Mobile', keyboardGuide: 'Use ↑ ↓ ← → to move',
+      mobileGuide: 'Swipe to move', ok: 'OK', goal: 'Goal: Eat food', notice: 'Notice: Die if hit wall/self',
+      tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
+      gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
+      perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
+      tips: 'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause'
+    }
+  };
 
   function setLang(newLang) {
     lang = newLang;
-    startBtn.innerText = t('start');
     btnEn.classList.toggle('active', lang === 'en');
     btnCn.classList.toggle('active', lang === 'cn');
+    startBtn.textContent = langText[lang].start;
+    backBtn.textContent = langText[lang].back;
+    levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
+    tips.textContent = langText[lang].tips;
+    updateComingSoonText();
   }
 
   btnEn.onclick = () => setLang('en');
   btnCn.onclick = () => setLang('cn');
 
-  function resetGame() {
-    clearInterval(gameLoop);
+  startBtn.onclick = () => {
+    mainMenu.classList.add('hidden');
+    levelSelect.classList.remove('hidden');
+    refreshLevelLock();
+    updateComingSoonText();
+  };
+  backBtn.onclick = () => {
+    levelSelect.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+  };
+
+  // 点击关卡：严格锁死
+  levelTutorial.onclick = () => { selectLevel(0); };
+  
+  level1.onclick = () => {
+    if (hasDoneTutorial) selectLevel(1);
+  };
+
+  level2.onclick = () => {
+    if (unlockedLevel2) selectLevel(2);
+  };
+
+  function selectLevel(lv) {
+    level = lv;
+    localStorage.setItem('savedLevel', level);
+    
     if (level === 0) {
-      gridSize = 20;
-      speed = 280;
-      gameBoard.classList.add('tutorial');
+      askSkipTutorial();
     } else {
-      gameBoard.classList.remove('tutorial');
-      if (level === 1) {
-        gridSize = 20;
-        speed = 180;
-      } else {
-        gridSize = 23;
-        speed = 160;
-      }
-    }
-    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
-    gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
-
-    snake = [
-      {x: Math.floor(gridSize/2), y: Math.floor(gridSize/2)},
-      {x: Math.floor(gridSize/2)-1, y: Math.floor(gridSize/2)},
-      {x: Math.floor(gridSize/2)-2, y: Math.floor(gridSize/2)}
-    ];
-    direction = {x:1, y:0};
-    score = 0;
-    updateScore();
-    food = spawnFood();
-    draw();
-  }
-
-  function updateScore() {
-    let label;
-    if (level === 0) label = t('tutorial');
-    else if (level === 1) label = t('level1');
-    else label = t('level2');
-    scoreElement.innerText = `${label} | ${t('score')}: ${score}`;
-  }
-
-  function getRandomColor() {
-    const colors = ['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'];
-    return colors[Math.floor(Math.random()*colors.length)];
-  }
-
-  function spawnFood() {
-    let f;
-    do {
-      f = {x: Math.floor(Math.random()*gridSize), y: Math.floor(Math.random()*gridSize), color: getRandomColor()};
-    } while (snake.some(s=>s.x===f.x&&s.y===f.y));
-    return f;
-  }
-
-  function distance(a,b) {
-    return Math.hypot(a.x-b.x, a.y-b.y);
-  }
-
-  function moveFoodSmart() {
-    if (level !== 2 || isPaused) return;
-    const head = snake[0];
-    const d = distance(head, food);
-    const maxStep = d < 4 ? 0.5 : d < 7 ? 1 : 1.5;
-    let dx = 0, dy = 0;
-    if (Math.random() > 0.5) {
-      dx = (Math.random() > 0.5 ? 1 : -1) * maxStep;
-    } else {
-      dy = (Math.random() > 0.5 ? 1 : -1) * maxStep;
-    }
-    const nx = Math.round(food.x + dx);
-    const ny = Math.round(food.y + dy);
-    if (nx >=0 && nx < gridSize && ny >=0 && ny < gridSize && !snake.some(s=>s.x===nx&&s.y===ny)) {
-      food.x = nx;
-      food.y = ny;
+      chooseDevice();
     }
   }
 
-  function update() {
-    if (isPaused || !isGameStarted) return;
-    const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
-    if (head.x<0||head.x>=gridSize||head.y<0||head.y>=gridSize||snake.some((s,i)=>i>0&&s.x===head.x&&s.y===head.y)) {
-      gameOver();
-      return;
-    }
-    snake.unshift(head);
-    let ate = false;
-    if (head.x===food.x&&head.y===food.y) {
-      score +=10;
-      updateScore();
-      food = spawnFood();
-      ate = true;
-    } else {
-      snake.pop();
-    }
-    if (level === 0 && score >= 40) {
-      tutorialComplete();
-      return;
-    }
-    if (level === 1 && score >= 150) {
-      victory();
-      return;
-    }
-    if (level === 2 && score >= 200) {
-      finalWin();
-      return;
-    }
-    if (level === 2 && !ate) {
-      setTimeout(moveFoodSmart, 300);
-    }
-    draw();
-  }
-
-  function draw() {
-    gameBoard.innerHTML = '';
-    if (level === 0) {
-      const tip = document.createElement('div');
-      tip.className = 'tutorial-text';
-      tip.innerText = `${t('goal')}\n${t('notice')}`;
-      gameBoard.appendChild(tip);
-    }
-    snake.forEach((s,i)=>{
-      const el = document.createElement('div');
-      el.style.gridColumnStart = s.x+1;
-      el.style.gridRowStart = s.y+1;
-      el.style.backgroundColor = i===0 ? '#4CAF50' : '#8BC34A';
-      gameBoard.appendChild(el);
-    });
-    const f = document.createElement('div');
-    f.style.gridColumnStart = food.x+1;
-    f.style.gridRowStart = food.y+1;
-    f.style.backgroundColor = food.color;
-    f.style.border = '1px solid #fff';
-    gameBoard.appendChild(f);
-  }
-
-  function gameOver() {
-    clearInterval(gameLoop);
-    showModal(t('gameOver'), `${t('score')}: ${score}`, false, true);
-  }
-
-  function tutorialComplete() {
-    clearInterval(gameLoop);
-    showModal(t('tutorialComplete'), t('nextLevel'), true, false);
-  }
-
-  function victory() {
-    clearInterval(gameLoop);
-    showModal(t('victory'), t('nextLevel'), true, false);
-  }
-
-  function finalWin() {
-    clearInterval(gameLoop);
-    showModal(t('finalWin'), t('perfect'), false, true);
-  }
-
-  function showModal(title, sub, goNext, showRestart) {
-    const m = document.createElement('div');
-    m.className = 'modal';
-    let titleClass = title === t('gameOver') ? 'gameover-text' : 'victory-text';
-    let restartHtml = showRestart ? `<button class="restart-btn">${t('playAgain')}</button>` : '';
-    m.innerHTML = `
-      <div class="${titleClass}">${title}</div>
-      <div class="final-score">${sub}</div>
-      ${restartHtml}
-    `;
-    document.body.appendChild(m);
-
-    if (showRestart) {
-      m.querySelector('.restart-btn').onclick = () => {
-        document.body.removeChild(m);
-        isPaused = false;
-        pauseBtn.innerHTML = '⏸';
-        pauseBtn.style.background = '#F44336';
-        
-        // 核心：死在第几关，就重开第几关
-        resetGame();
-        startGameLoop();
-      };
-    }
-    if (goNext) {
-      setTimeout(()=>{
-        document.body.removeChild(m);
-        startCountdown();
-      }, 1300);
-    }
-  }
-
-  function startCountdown() {
-    const m = document.createElement('div');
-    m.className = 'modal';
-    m.innerHTML = `<div class="countdown" id="cd">3</div>`;
-    document.body.appendChild(m);
-    const cd = document.getElementById('cd');
-    let n = 3;
-    const iv = setInterval(()=>{
-      n--;
-      if (n<=0) {
-        clearInterval(iv);
-        document.body.removeChild(m);
-        level++;
-        resetGame();
-        startGameLoop();
-      } else {
-        cd.innerText = n;
-      }
-    }, 800);
-  }
-
-  function togglePause() {
-    if (!isGameStarted) return;
-    isPaused = !isPaused;
-    if (isPaused) {
-      pauseBtn.innerHTML = '▶';
-      pauseBtn.style.background = '#4CAF50';
-    } else {
-      pauseBtn.innerHTML = '⏸';
-      pauseBtn.style.background = '#F44336';
-    }
-  }
-
-  function startGameLoop() {
-    clearInterval(gameLoop);
-    gameLoop = setInterval(update, speed);
-  }
-
+  // 只要进入教程（不管跳不跳），都解锁 Level 1
   function askSkipTutorial() {
     const m = document.createElement('div');
     m.className = 'modal';
     m.innerHTML = `
-      <div style="font-size:28px; color:#fff; margin-bottom:20px;">${t('skipTutorial')}</div>
+      <div style="font-size:28px; color:#fff; margin-bottom:20px;">${langText[lang].skipTutorial}</div>
       <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
       <button class="skip-btn" id="skip-no">${lang === 'en' ? 'No' : '否'}</button>
     `;
     document.body.appendChild(m);
     m.querySelector('#skip-yes').onclick = () => {
-      tutorialSkipped = true;
+      // 跳过教程 → 解锁1
+      hasDoneTutorial = true;
+      localStorage.setItem('hasDoneTutorial', 'true');
       document.body.removeChild(m);
       chooseDevice();
     };
     m.querySelector('#skip-no').onclick = () => {
-      tutorialSkipped = false;
+      // 不跳 → 正常玩，完成后也解锁1
       document.body.removeChild(m);
       chooseDevice();
     };
@@ -504,111 +357,120 @@
     const m = document.createElement('div');
     m.className = 'modal';
     m.innerHTML = `
-      <div style="font-size:30px; margin-bottom:10px; color:#fff;">${t('chooseDevice')}</div>
-      <button class="device-btn" id="kb">${t('keyboard')}</button>
-      <button class="device-btn" id="tb">${t('mobile')}</button>
-      <div class="notice">${t('tabletNotice')}</div>
+      <div style="font-size:30px; margin-bottom:10px; color:#fff;">${langText[lang].chooseDevice}</div>
+      <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
+      <button class="device-btn" id="tb">${langText[lang].mobile}</button>
+      <div class="notice">${langText[lang].tabletNotice}</div>
     `;
     document.body.appendChild(m);
-    m.querySelector('#kb').onclick = () => {
-      mode = 'keyboard';
-      document.body.removeChild(m);
-      showKeyboardGuide();
-    };
-    m.querySelector('#tb').onclick = () => {
-      mode = 'touch';
-      document.body.removeChild(m);
-      showTouchGuide();
-    };
+    m.querySelector('#kb').onclick = () => { mode='keyboard'; document.body.removeChild(m); showKeyboardGuide(); };
+    m.querySelector('#tb').onclick = () => { mode='touch'; document.body.removeChild(m); showTouchGuide(); };
   }
 
   function showKeyboardGuide() {
     const m = document.createElement('div');
     m.className = 'modal';
     m.innerHTML = `
-      <div class="victory-text">${t('keyboard')}</div>
-      <div class="final-score">${t('keyboardGuide')}</div>
-      <button class="restart-btn">${t('ok')}</button>
+      <div class="victory-text">${langText[lang].keyboard}</div>
+      <div class="final-score">${langText[lang].keyboardGuide}</div>
+      <button class="restart-btn">${langText[lang].ok}</button>
     `;
     document.body.appendChild(m);
-    m.querySelector('.restart-btn').onclick = () => {
-      document.body.removeChild(m);
-      startGameFlow();
-    };
+    m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
   }
-
   function showTouchGuide() {
     const m = document.createElement('div');
     m.className = 'modal';
     m.innerHTML = `
-      <div class="victory-text">${t('mobile')}</div>
-      <div class="final-score">${t('mobileGuide')}</div>
-      <button class="restart-btn">${t('ok')}</button>
+      <div class="victory-text">${langText[lang].mobile}</div>
+      <div class="final-score">${langText[lang].mobileGuide}</div>
+      <button class="restart-btn">${langText[lang].ok}</button>
     `;
     document.body.appendChild(m);
-    m.querySelector('.restart-btn').onclick = () => {
-      document.body.removeChild(m);
-      startGameFlow();
-    };
+    m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
   }
 
-  function startGameFlow() {
-    startBtn.style.display = 'none';
-    document.querySelector('.lang-group').style.display = 'none';
-    scoreRow.style.display = 'flex';
-    gameBoard.style.display = 'grid';
-    tips.style.display = 'block';
-
-    isGameStarted = true;
-    isPaused = false;
-    pauseBtn.innerHTML = '⏸';
-    pauseBtn.style.background = '#F44336';
-
-    if (tutorialSkipped) {
-      level = 1;
-    } else {
-      level = 0;
-    }
-    resetGame();
-    startGameLoop();
+  function startGame() {
+    mainMenu.classList.add('hidden');
+    levelSelect.classList.add('hidden');
+    scoreRow.classList.remove('hidden');
+    gameBoard.classList.remove('hidden');
+    tips.classList.remove('hidden');
+    isGameStarted = true; isPaused = false;
+    pauseBtn.innerHTML = '⏸'; pauseBtn.style.background = '#F44336';
+    resetGame(); startGameLoop();
   }
 
-  startBtn.onclick = () => {
-    askSkipTutorial();
-  };
+  function resetGame() {
+    clearInterval(gameLoop);
+    if (level === 0) { gridSize=20; speed=280; gameBoard.classList.add('tutorial');
+    } else { gameBoard.classList.remove('tutorial'); if(level===1){gridSize=20;speed=180;}else{gridSize=23;speed=160;} }
+    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
+    gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
+    snake = [
+      {x:Math.floor(gridSize/2),y:Math.floor(gridSize/2)},
+      {x:Math.floor(gridSize/2)-1,y:Math.floor(gridSize/2)},
+      {x:Math.floor(gridSize/2)-2,y:Math.floor(gridSize/2)}
+    ];
+    direction = {x:1,y:0}; score=0; updateScore(); food=spawnFood(); draw();
+  }
 
-  pauseBtn.onclick = togglePause;
+  function updateScore() {
+    let label = level===0 ? langText[lang].tutorial : level===1 ? langText[lang].level1 : langText[lang].level2;
+    scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}`;
+  }
+  function getRandomColor(){const c=['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'];return c[Math.floor(Math.random()*c.length)];}
+  function spawnFood(){let f;do{f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};}while(snake.some(s=>s.x===f.x&&s.y===f.y));return f;}
+  function moveFoodSmart(){if(level!==2||isPaused)return;const h=snake[0];const d=Math.hypot(h.x-food.x,h.y-food.y);const s=d<4?0.5:d<7?1:1.5;let dx=0,dy=0;Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){food.x=nx;food.y=ny;}}
 
-  document.addEventListener('keydown', e=>{
-    if (e.keyCode === 32) { togglePause(); e.preventDefault(); }
-    if (isPaused || !isGameStarted) return;
-    const k = e.keyCode;
-    const L=37,U=38,R=39,D=40;
-    if (k===L && direction.x!==1) direction={x:-1,y:0};
-    if (k===U && direction.y!==1) direction={x:0,y:-1};
-    if (k===R && direction.x!==-1) direction={x:1,y:0};
-    if (k===D && direction.y!==-1) direction={x:0,y:1};
-  });
-
-  document.addEventListener('touchstart', e=>{
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  });
-
-  document.addEventListener('touchend', e=>{
-    if (!isGameStarted || isPaused) return;
-    let x = e.changedTouches[0].clientX;
-    let y = e.changedTouches[0].clientY;
-    let dx = x - touchStartX;
-    let dy = y - touchStartY;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 20 && direction.x !== -1) direction = {x:1,y:0};
-      if (dx < -20 && direction.x !== 1) direction = {x:-1,y:0};
-    } else {
-      if (dy > 20 && direction.y !== -1) direction = {x:0,y:1};
-      if (dy < -20 && direction.y !== 1) direction = {x:0,y:-1};
+  function update(){
+    if(isPaused||!isGameStarted)return;const h={x:snake[0].x+direction.x,y:snake[0].y+direction.y};
+    if(h.x<0||h.x>=gridSize||h.y<0||h.y>=gridSize||snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)){gameOver();return;}
+    snake.unshift(h);let a=false;if(h.x===food.x&&h.y===food.y){score+=10;updateScore();food=spawnFood();a=true;}else{snake.pop();}
+    if(level===0&&score>=40){
+      hasDoneTutorial = true;
+      localStorage.setItem('hasDoneTutorial','true');
+      tutorialComplete();return;
     }
-  });
+    if(level===1&&score>=150){
+      unlockedLevel2 = true;
+      localStorage.setItem('unlockedLevel2','true');
+      victory();return;
+    }
+    if(level===2&&score>=200){finalWin();return;}
+    if(level===2&&!a)setTimeout(moveFoodSmart,300);draw();
+  }
+
+  function draw(){gameBoard.innerHTML='';if(level===0){const t=document.createElement('div');t.className='tutorial-text';t.innerText=`${langText[lang].goal}\n${langText[lang].notice}`;gameBoard.appendChild(t);}snake.forEach((s,i)=>{const e=document.createElement('div');e.style.gridColumnStart=s.x+1;e.style.gridRowStart=s.y+1;e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';gameBoard.appendChild(e);});const f=document.createElement('div');f.style.gridColumnStart=food.x+1;f.style.gridRowStart=food.y+1;f.style.backgroundColor=food.color;f.style.border='1px solid #fff';gameBoard.appendChild(f);}
+  function gameOver(){clearInterval(gameLoop);showModal(langText[lang].gameOver,`${langText[lang].score}: ${score}`,false,true);}
+  function tutorialComplete(){clearInterval(gameLoop);showModal(langText[lang].tutorialComplete,langText[lang].nextLevel,true,false);}
+  function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
+  function finalWin(){clearInterval(gameLoop);showModal(langText[lang].finalWin,langText[lang].perfect,false,true);}
+
+  function showModal(title,sub,g,r){
+    const m=document.createElement('div');m.className='modal';
+    const tc=title===langText[lang].gameOver?'gameover-text':'victory-text';
+    const rh=r?`<button class="restart-btn">${langText[lang].playAgain}</button>`:'';
+    m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${rh}`;
+    document.body.appendChild(m);
+    if(r){m.querySelector('.restart-btn').onclick=()=>{document.body.removeChild(m);isPaused=false;pauseBtn.innerHTML='⏸';pauseBtn.style.background='#F44336';resetGame();startGameLoop();};}
+    if(g){setTimeout(()=>{document.body.removeChild(m);startCountdown();},1300);}
+  }
+
+  function startCountdown(){
+    const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="countdown" id="cd">3</div>`;document.body.appendChild(m);
+    const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);resetGame();startGameLoop();}else{cd.innerText=n;}},800);
+  }
+
+  function togglePause(){if(!isGameStarted)return;isPaused=!isPaused;pauseBtn.innerHTML=isPaused?'▶':'⏸';pauseBtn.style.background=isPaused?'#4CAF50':'#F44336';}
+  pauseBtn.onclick=togglePause;
+  function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
+
+  document.addEventListener('keydown',e=>{if(e.keyCode===32){togglePause();e.preventDefault();}if(isPaused||!isGameStarted)return;const k=e.keyCode,L=37,U=38,R=39,D=40;if(k===L&&direction.x!==1)direction={x:-1,y:0};if(k===U&&direction.y!==1)direction={x:0,y:-1};if(k===R&&direction.x!==-1)direction={x:1,y:0};if(k===D&&direction.y!==-1)direction={x:0,y:1};});
+  document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;});
+  document.addEventListener('touchend',e=>{if(!isGameStarted||isPaused)return;const x=e.changedTouches[0].clientX,y=e.changedTouches[0].clientY,dx=x-touchStartX,dy=y-touchStartY;if(Math.abs(dx)>Math.abs(dy)){if(dx>20&&direction.x!==-1)direction={x:1,y:0};if(dx<-20&&direction.x!==1)direction={x:-1,y:0};}else{if(dy>20&&direction.y!==-1)direction={x:0,y:1};if(dy<-20&&direction.y!==1)direction={x:0,y:-1};}});
+
+  setLang(lang);
 </script>
 </body>
 </html>
