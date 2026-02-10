@@ -22,6 +22,30 @@
     .hidden { display: none !important; }
     .menu-title { font-size: 36px; color: #4CAF50; }
     
+    /* 模式选择按钮样式 */
+    .mode-btn {
+      width: 220px;
+      height: 80px;
+      border-radius: 16px;
+      border: none;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s;
+    }
+    .mode-btn.levels {
+      background-color: #4CAF50;
+    }
+    .mode-btn.special {
+      background-color: #64B5F6; /* 浅蓝色 */
+    }
+    .mode-btn.locked {
+      background-color: #555;
+      cursor: default;
+      opacity: 0.6;
+    }
+
     .level-grid {
       display: flex;
       gap: 12px;
@@ -189,7 +213,15 @@
   </div>
 </div>
 
-<!-- 关卡选择 -->
+<!-- 模式选择页 -->
+<div id="modeSelect" class="screen hidden">
+  <h1 class="menu-title">Select Mode</h1>
+  <button class="mode-btn levels" id="modeLevels">Levels</button>
+  <button class="mode-btn special locked" id="modeSpecial">Special</button>
+  <button class="menu-btn" id="backFromMode">Back</button>
+</div>
+
+<!-- 普通关卡选择 -->
 <div id="levelSelect" class="screen hidden">
   <h1 class="menu-title">Select Level</h1>
   <div class="level-grid" id="levelGrid">
@@ -200,7 +232,21 @@
     <div class="level-block locked coming-soon">敬请期待</div>
     <div class="level-block locked coming-soon">敬请期待</div>
   </div>
-  <button class="menu-btn" id="backBtn">Back</button>
+  <button class="menu-btn" id="backFromLevels">Back</button>
+</div>
+
+<!-- Special 关卡选择（全部敬请期待） -->
+<div id="specialSelect" class="screen hidden">
+  <h1 class="menu-title">Special Modes</h1>
+  <div class="level-grid" id="specialGrid">
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon">敬请期待</div>
+  </div>
+  <button class="menu-btn" id="backFromSpecial">Back</button>
 </div>
 
 <!-- 游戏界面 -->
@@ -220,9 +266,15 @@
   const btnEn = document.getElementById('btn-en');
   const btnCn = document.getElementById('btn-cn');
   const startBtn = document.getElementById('startBtn');
-  const backBtn = document.getElementById('backBtn');
   const mainMenu = document.getElementById('mainMenu');
+  const modeSelect = document.getElementById('modeSelect');
+  const modeLevels = document.getElementById('modeLevels');
+  const modeSpecial = document.getElementById('modeSpecial');
+  const backFromMode = document.getElementById('backFromMode');
   const levelSelect = document.getElementById('levelSelect');
+  const backFromLevels = document.getElementById('backFromLevels');
+  const specialSelect = document.getElementById('specialSelect');
+  const backFromSpecial = document.getElementById('backFromSpecial');
   const levelTutorial = document.getElementById('level-tutorial');
   const level1 = document.getElementById('level-1');
   const level2 = document.getElementById('level-2');
@@ -256,6 +308,13 @@
     level2.classList.toggle('active', unlockedLevel2);
     level3.classList.toggle('locked', !unlockedLevel3);
     level3.classList.toggle('active', unlockedLevel3);
+    
+    // Special 模式解锁逻辑：通关 Level 1, 2, 3 后解锁
+    if (unlockedLevel3) {
+      modeSpecial.classList.remove('locked');
+    } else {
+      modeSpecial.classList.add('locked');
+    }
   }
 
   // 敬请期待 / Coming Soon
@@ -273,7 +332,8 @@
       tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
       gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
       perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
-      tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停'
+      tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停',
+      selectMode: '选择模式', levels: '普通关卡', special: '特殊玩法'
     },
     en: {
       start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2', level3: 'Level 3',
@@ -283,7 +343,8 @@
       tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
       gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
       perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
-      tips: 'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause'
+      tips: 'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
+      selectMode: 'Select Mode', levels: 'Levels', special: 'Special'
     }
   };
 
@@ -292,8 +353,14 @@
     btnEn.classList.toggle('active', lang === 'en');
     btnCn.classList.toggle('active', lang === 'cn');
     startBtn.textContent = langText[lang].start;
-    backBtn.textContent = langText[lang].back;
+    backFromMode.textContent = langText[lang].back;
+    backFromLevels.textContent = langText[lang].back;
+    backFromSpecial.textContent = langText[lang].back;
     levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
+    specialSelect.querySelector('h1').textContent = langText[lang].special;
+    modeSelect.querySelector('h1').textContent = langText[lang].selectMode;
+    modeLevels.textContent = langText[lang].levels;
+    modeSpecial.textContent = langText[lang].special;
     tips.textContent = langText[lang].tips;
     updateComingSoonText();
   }
@@ -303,13 +370,38 @@
 
   startBtn.onclick = () => {
     mainMenu.classList.add('hidden');
-    levelSelect.classList.remove('hidden');
+    modeSelect.classList.remove('hidden');
     refreshLevelLock();
     updateComingSoonText();
   };
-  backBtn.onclick = () => {
-    levelSelect.classList.add('hidden');
+
+  backFromMode.onclick = () => {
+    modeSelect.classList.add('hidden');
     mainMenu.classList.remove('hidden');
+  };
+
+  modeLevels.onclick = () => {
+    modeSelect.classList.add('hidden');
+    levelSelect.classList.remove('hidden');
+    refreshLevelLock();
+  };
+
+  modeSpecial.onclick = () => {
+    if (!modeSpecial.classList.contains('locked')) {
+      modeSelect.classList.add('hidden');
+      specialSelect.classList.remove('hidden');
+      updateComingSoonText();
+    }
+  };
+
+  backFromLevels.onclick = () => {
+    levelSelect.classList.add('hidden');
+    modeSelect.classList.remove('hidden');
+  };
+
+  backFromSpecial.onclick = () => {
+    specialSelect.classList.add('hidden');
+    modeSelect.classList.remove('hidden');
   };
 
   levelTutorial.onclick = () => { selectLevel(0); };
@@ -394,6 +486,8 @@
   function startGame() {
     mainMenu.classList.add('hidden');
     levelSelect.classList.add('hidden');
+    specialSelect.classList.add('hidden');
+    modeSelect.classList.add('hidden');
     scoreRow.classList.remove('hidden');
     gameBoard.classList.remove('hidden');
     tips.classList.remove('hidden');
@@ -567,6 +661,7 @@
   });
 
   setLang(lang);
+  refreshLevelLock();
 </script>
 </body>
 </html>
