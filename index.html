@@ -69,7 +69,7 @@
     }
     .level-block.active { background: #4CAF50; border-color: #8BC34A; }
     .level-block.tutorial { background: #2196F3; border-color: #03A9F4; }
-    .level-block.locked { background: #222; border-color: #333; color: #555; cursor: default; }
+    .level-block.locked { background: #222; border-color: #333; color: #553; cursor: default; }
     
     .menu-btn {
       padding: 12px 24px;
@@ -346,24 +346,28 @@
       chooseDevice: '选择设备', keyboard: '⌨️ 键盘', mobile: '📱 手机', keyboardGuide: '使用 ↑ ↓ ← → 移动',
       mobileGuide: '滑动屏幕移动', ok: '确定', goal: '目标：吃掉食物', notice: '注意：碰墙/碰自己即死',
       speedNotice: '注意：吃到食物后速度会加快',
+      specialGoal: '目标：短时间内尽可能吃掉更多食物',
       tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
       gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
       perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
       tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停',
       selectMode: '选择模式', levels: '普通关卡', special: '特殊玩法',
-      special1: '特殊1', time: '时间', stage: '阶段'
+      special1: '特殊1', time: '时间', stage: '阶段',
+      newStage: '新阶段'
     },
     en: {
       start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2', level3: 'Level 3',
       chooseDevice: 'Choose Device', keyboard: '⌨️ Keyboard', mobile: '📱 Mobile', keyboardGuide: 'Use ↑ ↓ ← → to move',
       mobileGuide: 'Swipe to move', ok: 'OK', goal: 'Goal: Eat food', notice: 'Notice: Die if hit wall/self',
       speedNotice: 'Notice: Speed increases when eating food',
+      specialGoal: 'Goal: Eat as much food as possible quickly',
       tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
       gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
       perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
       tips: 'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
       selectMode: 'Select Mode', levels: 'Levels', special: 'Special',
-      special1: 'Special1', time: 'Time', stage: 'Stage'
+      special1: 'Special1', time: 'Time', stage: 'Stage',
+      newStage: 'New Stage'
     }
   };
 
@@ -398,11 +402,7 @@
 
   function startSpecial1() {
     isSpecialMode = true;
-    if (specialUnlockStage3) {
-      specialStage = 3;
-    } else {
-      specialStage = 1;
-    }
+    specialStage = 1;
     mainMenu.classList.add('hidden');
     modeSelect.classList.add('hidden');
     specialSelect.classList.add('hidden');
@@ -440,19 +440,37 @@
       specialStar1 = true;
       specialStage = 2;
       saveSpecialProgress();
-      startSpecialTimer();
+      countdownToNewStage();
     } else if (specialStage === 2 && score >= STAGE2_SCORE) {
       specialStar2 = true;
       specialUnlockStage3 = true;
       specialStage = 3;
       saveSpecialProgress();
-      startSpecialTimer();
-    } else if (specialStage === 3) {
-      if (score > specialHighscore) {
-        specialHighscore = score;
-        saveSpecialProgress();
-      }
+      countdownToNewStage();
     }
+  }
+
+  function countdownToNewStage() {
+    clearInterval(gameLoop);
+    clearInterval(specialTimer);
+    const m = document.createElement('div');
+    m.className = 'modal';
+    m.innerHTML = `<div class="countdown" id="cd">3</div>`;
+    document.body.appendChild(m);
+    let n = 3;
+    const cdInterval = setInterval(() => {
+      n--;
+      if (n <= 0) {
+        clearInterval(cdInterval);
+        document.body.removeChild(m);
+        score = 0;
+        resetGame();
+        startSpecialTimer();
+        startGameLoop();
+      } else {
+        document.getElementById('cd').innerText = n;
+      }
+    }, 800);
   }
 
   startBtn.onclick = () => {
@@ -460,7 +478,7 @@
     modeSelect.classList.remove('hidden');
     refreshLevelLock();
   };
-  backFromMode.onclick = () => { modeSelect.classList.add('hidden'); mainMenu.removeAttribute('class'); mainMenu.classList.add('screen'); };
+  backFromMode.onclick = () => { modeSelect.classList.add('hidden'); mainMenu.classList.remove('hidden'); };
   modeLevels.onclick = () => { modeSelect.classList.add('hidden'); levelSelect.classList.remove('hidden'); refreshLevelLock(); };
   modeSpecial.onclick = () => {
     if (!modeSpecial.classList.contains('locked')) {
@@ -588,6 +606,9 @@
     if (isSpecialMode) {
       gridSize = 20;
       baseSpeed = 220;
+      if (specialStage === 1) {
+        gameBoard.classList.add('tutorial');
+      }
     } else if (level === 0) {
       gridSize = 20; baseSpeed = 280;
       gameBoard.classList.add('tutorial');
@@ -607,7 +628,6 @@
       {x:Math.floor(gridSize/2)-2,y:Math.floor(gridSize/2)}
     ];
     direction = {x:1,y:0};
-    score=0;
     updateScore();
     food=spawnFood();
     draw();
@@ -700,12 +720,18 @@
     gameBoard.innerHTML = '';
     const t = document.createElement('div');
     t.className = 'tutorial-text';
-    if (!isSpecialMode && level === 0) {
+    
+    if (isSpecialMode && specialStage === 1) {
+      t.innerText = langText[lang].specialGoal;
+    } else if (!isSpecialMode && level === 0) {
       t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
     } else if (!isSpecialMode && level === 2) {
       t.innerText = langText[lang].speedNotice;
     }
-    gameBoard.appendChild(t);
+    
+    if (t.innerText) {
+      gameBoard.appendChild(t);
+    }
 
     snake.forEach((s,i)=>{
       const e=document.createElement('div');
