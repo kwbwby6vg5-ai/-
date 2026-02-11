@@ -322,7 +322,7 @@
   const STAGE1_TIME = 40;
   const STAGE1_SCORE = 80;
   const STAGE2_TIME = 60;
-  const STAGE2_SCORE = 180;
+  const STAGE2_SCORE = 160;
   const STAGE3_TIME = 90;
 
   function refreshLevelLock() {
@@ -346,7 +346,8 @@
       chooseDevice: '选择设备', keyboard: '⌨️ 键盘', mobile: '📱 手机', keyboardGuide: '使用 ↑ ↓ ← → 移动',
       mobileGuide: '滑动屏幕移动', ok: '确定', goal: '目标：吃掉食物', notice: '注意：碰墙/碰自己即死',
       speedNotice: '注意：吃到食物后速度会加快',
-      specialGoal: '目标：短时间内尽可能吃掉更多食物',
+      specialGoal1: '目标：短时间内尽可能吃掉更多食物\n达标：80 分',
+      specialGoal2: '目标：短时间内尽可能吃掉更多食物\n达标：160 分',
       tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
       gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
       perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
@@ -360,7 +361,8 @@
       chooseDevice: 'Choose Device', keyboard: '⌨️ Keyboard', mobile: '📱 Mobile', keyboardGuide: 'Use ↑ ↓ ← → to move',
       mobileGuide: 'Swipe to move', ok: 'OK', goal: 'Goal: Eat food', notice: 'Notice: Die if hit wall/self',
       speedNotice: 'Notice: Speed increases when eating food',
-      specialGoal: 'Goal: Eat as much food as possible quickly',
+      specialGoal1: 'Goal: Eat as much food as possible quickly\nTarget: 80',
+      specialGoal2: 'Goal: Eat as much food as possible quickly\nTarget: 160',
       tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
       gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
       perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
@@ -722,7 +724,9 @@
     t.className = 'tutorial-text';
     
     if (isSpecialMode && specialStage === 1) {
-      t.innerText = langText[lang].specialGoal;
+      t.innerText = langText[lang].specialGoal1;
+    } else if (isSpecialMode && specialStage === 2) {
+      t.innerText = langText[lang].specialGoal2;
     } else if (!isSpecialMode && level === 0) {
       t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
     } else if (!isSpecialMode && level === 2) {
