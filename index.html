@@ -17,201 +17,91 @@
       touch-action: none;
       min-height: 100vh;
     }
-
     .screen { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
     .hidden { display: none !important; }
     .menu-title { font-size: 36px; color: #4CAF50; }
-    
     .mode-btn {
-      width: 220px;
-      height: 80px;
-      border-radius: 16px;
-      border: none;
-      font-size: 24px;
-      font-weight: bold;
-      cursor: pointer;
-      color: white;
-      transition: all 0.2s;
+      width: 220px; height: 80px; border-radius: 16px; border: none;
+      font-size: 24px; font-weight: bold; color: white;
+      cursor: pointer; transition: all 0.2s;
     }
-    .mode-btn.levels {
-      background-color: #4CAF50;
-    }
-    .mode-btn.special {
-      background-color: #64B5F6;
-    }
-    .mode-btn.locked {
-      background-color: #555;
-      cursor: default;
-      opacity: 0.6;
-    }
-
+    .mode-btn.levels { background: #4CAF50; }
+    .mode-btn.special { background: #64B5F6; }
+    .mode-btn.locked { background: #555; opacity: 0.6; cursor: default; }
     .level-grid {
-      display: flex;
-      gap: 12px;
-      flex-wrap: nowrap;
-      justify-content: center;
-      margin: 10px 0 20px;
+      display: flex; gap: 12px; flex-wrap: nowrap;
+      justify-content: center; margin: 10px 0 20px;
     }
     .level-block {
-      width: 80px; height: 80px;
-      border-radius: 12px;
-      background: #333;
-      border: 2px solid #444;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #fff;
-      text-align: center;
-      line-height: 1.2;
+      width: 80px; height: 80px; border-radius: 12px;
+      background: #333; border: 2px solid #444;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: bold; color: #fff;
+      cursor: pointer; text-align: center; line-height: 1.2;
     }
     .level-block.active { background: #4CAF50; border-color: #8BC34A; }
     .level-block.tutorial { background: #2196F3; border-color: #03A9F4; }
     .level-block.locked { background: #222; border-color: #333; color: #553; cursor: default; }
-    
     .menu-btn {
-      padding: 12px 24px;
-      font-size: 18px;
-      border-radius: 12px;
-      border: none;
-      background: #333;
-      color: white;
-      min-width: 180px;
+      padding: 12px 24px; font-size: 18px; border-radius: 12px;
+      border: none; background: #333; color: white; min-width: 180px;
       cursor: pointer;
     }
     .menu-btn.primary { background: #4CAF50; }
-    .lang-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
+    .lang-group { display: flex; gap: 10px; margin-top: 10px; }
     .lang-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      background: #555;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
+      padding: 8px 16px; border-radius: 8px; border: none;
+      background: #555; color: white; font-size: 16px; cursor: pointer;
     }
     .lang-btn.active { background: #4CAF50; }
-
-    .score-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     #score { font-size: 24px; }
     #timer { font-size: 24px; color: #FFEB3B; margin-left: 10px; }
     #pause-btn {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: #333;
-      border: 2px solid #666;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #333; border: 2px solid #666;
       box-shadow: 0 2px 4 rgba(0,0,0,0.3);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: #fff;
-      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #fff; cursor: pointer; transition: all 0.2s;
     }
     #game-board {
-      background: #222;
-      display: grid;
-      gap: 1px;
-      border: 2px solid #444;
-      transition: all 0.3s;
-      position: relative;
+      background: #222; display: grid; gap: 1px;
+      border: 2px solid #444; position: relative;
     }
     #game-board.tutorial {
       background-image: linear-gradient(#333 1px, transparent 1px),
-                        linear-gradient(90deg, #333 1px, transparent 1px);
+                        linear-gradient(90deg #333 1px, transparent 1px);
       background-size: 20px 20px;
     }
     .tutorial-text {
-      position: absolute;
-      top: 10px; left: 10px;
-      color: #f44336;
-      font-size: 14px;
-      font-weight: bold;
-      line-height: 1.4;
-      text-shadow: 0 0 2px #000;
-      z-index: 10;
+      position: absolute; top: 10px; left: 10px;
+      color: #f44336; font-size: 14px; font-weight: bold;
+      line-height: 1.4; text-shadow: 0 0 2px #000; z-index: 10;
     }
     #tips { margin-top: 10px; color: #888; text-align: center; }
-
     .modal {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 999;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 999;
     }
     .device-btn, .skip-btn {
-      font-size: 22px;
-      padding: 14px 28px;
-      margin: 10px;
-      border-radius: 12px;
-      border: none;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
+      font-size: 22px; padding: 14px 28px; margin: 10px;
+      border-radius: 12px; border: none; background: #4CAF50;
+      color: white; cursor: pointer;
     }
-    .notice {
-      font-size: 14px;
-      color: #FFEB3B;
-      margin-top: 15px;
-      max-width: 300px;
-      text-align: center;
-      line-height: 1.4;
-    }
-    .victory-text {
-      font-size: 50px;
-      color: #FFEB3B;
-      text-shadow: 0 0 15px #FFEB3B;
-      margin-bottom: 20px;
-    }
-    .gameover-text {
-      font-size: 50px;
-      color: #F44336;
-      text-shadow: 0 0 15px #F44336;
-      margin-bottom: 20px;
-    }
-    .countdown {
-      font-size: 80px;
-      color: #4CAF50;
-      font-weight: bold;
-      animation: flash 0.6s infinite alternate;
-    }
+    .notice { font-size: 14px; color: #FFEB3B; margin-top: 15px; max-width: 300px; text-align: center; line-height: 1.4; }
+    .victory-text { font-size: 50px; color: #FFEB3B; text-shadow: 0 0 15px #FFEB3B; margin-bottom: 20px; }
+    .gameover-text { font-size: 50px; color: #F44336; text-shadow: 0 0 15px #F44336; margin-bottom: 20px; }
+    .countdown { font-size: 80px; color: #4CAF50; font-weight: bold; animation: flash 0.6s infinite alternate; }
     @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
     .final-score { font-size: 28px; margin-bottom: 20px; }
     .restart-btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 50px;
-      background: #2196F3;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
+      padding: 12px 24px; border: none; border-radius: 50px;
+      background: #2196F3; color: white; font-size: 16px; cursor: pointer;
     }
-
-    .star-row {
-      display: flex;
-      gap: 10px;
-      margin: 5px 0;
-    }
-    .star {
-      font-size: 24px;
-      color: #ccc;
-    }
-    .star.active {
-      color: #FFEB3B;
-    }
+    .star-row { display: flex; gap: 10px; margin: 5px 0; }
+    .star { font-size: 24px; color: #ccc; }
+    .star.active { color: #FFEB3B; }
   </style>
 </head>
 <body>
@@ -239,21 +129,21 @@
     <div class="level-block locked" id="level-1">1</div>
     <div class="level-block locked" id="level-2">2</div>
     <div class="level-block locked" id="level-3">3</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked coming-soon"></div>
   </div>
   <button class="menu-btn" id="backFromLevels">Back</button>
 </div>
 
 <div id="specialSelect" class="screen hidden">
-  <h1 class="menu-title">Special Modes</h1>
+  <h1 class="menu-title">Special</h1>
   <div class="level-grid" id="specialGrid">
     <div class="level-block active" id="special1">S1</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
-    <div class="level-block locked coming-soon">敬请期待</div>
+    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked coming-soon"></div>
   </div>
   <button class="menu-btn" id="backFromSpecial">Back</button>
 </div>
@@ -322,54 +212,54 @@
   const STAGE1_TIME = 40;
   const STAGE1_SCORE = 80;
   const STAGE2_TIME = 60;
-  const STAGE2_SCORE = 160;
+  const STAGE2_SCORE = 140;
   const STAGE3_TIME = 90;
 
-  function refreshLevelLock() {
-    level1.classList.toggle('locked', !hasDoneTutorial);
-    level1.classList.toggle('active', hasDoneTutorial);
-    level2.classList.toggle('locked', !unlockedLevel2);
-    level2.classList.toggle('active', unlockedLevel2);
-    level3.classList.toggle('locked', !unlockedLevel3);
-    level3.classList.toggle('active', unlockedLevel3);
-    modeSpecial.classList.toggle('locked', !unlockedLevel3);
-  }
+  const LEVEL1_PASS = 150;
+  const LEVEL2_PASS = 150;
+  const LEVEL3_PASS = 150;
+  const TUTORIAL_PASS = 40;
 
   function updateComingSoonText() {
-    const text = lang === 'en' ? 'Coming\nSoon' : '敬请\n期待';
-    comingSoonElements.forEach(el => el.innerHTML = text);
+    comingSoonElements.forEach(el => {
+      el.innerText = lang === 'en' ? 'Coming Soon' : '敬请期待';
+    });
   }
 
   const langText = {
     cn: {
-      start: '开始', selectLevel: '选择关卡', back: '返回', tutorial: '教学关', level1: '第一关', level2: '第二关', level3: '第三关',
-      chooseDevice: '选择设备', keyboard: '⌨️ 键盘', mobile: '📱 手机', keyboardGuide: '使用 ↑ ↓ ← → 移动',
-      mobileGuide: '滑动屏幕移动', ok: '确定', goal: '目标：吃掉食物', notice: '注意：碰墙/碰自己即死',
-      speedNotice: '注意：吃到食物后速度会加快',
-      specialGoal1: '目标：短时间内尽可能吃掉更多食物\n达标：80 分',
-      specialGoal2: '目标：短时间内尽可能吃掉更多食物\n达标：160 分',
-      tabletNotice: '平板用户可在游玩中随意切换操作方式', skipTutorial: '是否跳过教学关？',
-      gameOver: '游戏结束', tutorialComplete: '教学完成！', victory: '恭喜过关！', finalWin: '你赢了！',
-      perfect: '完美！', score: '分数', nextLevel: '即将进入下一关', playAgain: '重新开始',
-      tips: '电脑：↑↓←→ 移动 | 空格暂停 | 手机：滑动移动 | 点圆圈暂停',
-      selectMode: '选择模式', levels: '普通关卡', special: '特殊玩法',
-      special1: '特殊1', time: '时间', stage: '阶段',
-      newStage: '新阶段'
+      start:'开始',selectLevel:'选择关卡',back:'返回',tutorial:'教学关',
+      level1:'第一关',level2:'第二关',level3:'第三关',
+      chooseDevice:'选择设备',keyboard:'键盘',mobile:'手机',
+      keyboardGuide:'使用 ↑ ↓ ← → 移动',mobileGuide:'滑动屏幕移动',
+      ok:'确定',goal:'目标：吃掉食物',notice:'注意：碰墙/碰自己即死',
+      speedNotice:'注意：吃到食物后速度会加快',
+      specialGoal1:'目标：短时间内尽可能吃掉更多食物\n达标：80 分',
+      specialGoal2:'目标：短时间内尽可能吃掉更多食物\n达标：140 分',
+      tabletNotice:'平板用户可在游玩中随意切换操作方式',
+      skipTutorial:'是否跳过教学关？',gameOver:'游戏结束',
+      tutorialComplete:'教学完成！',victory:'恭喜过关！',finalWin:'你赢了！',
+      perfect:'完美！',score:'分数',nextLevel:'即将进入下一关',playAgain:'重新开始',
+      tips:'电脑: ↑↓←→ 移动 | 空格暂停 | 手机: 滑动移动 | 点圆圈暂停',
+      selectMode:'选择模式',levels:'普通关卡',special:'特殊玩法',
+      special1:'特殊1',time:'时间',stage:'阶段',target:'目标'
     },
     en: {
-      start: 'Start', selectLevel: 'Select Level', back: 'Back', tutorial: 'Tutorial', level1: 'Level 1', level2: 'Level 2', level3: 'Level 3',
-      chooseDevice: 'Choose Device', keyboard: '⌨️ Keyboard', mobile: '📱 Mobile', keyboardGuide: 'Use ↑ ↓ ← → to move',
-      mobileGuide: 'Swipe to move', ok: 'OK', goal: 'Goal: Eat food', notice: 'Notice: Die if hit wall/self',
-      speedNotice: 'Notice: Speed increases when eating food',
-      specialGoal1: 'Goal: Eat as much food as possible quickly\nTarget: 80',
-      specialGoal2: 'Goal: Eat as much food as possible quickly\nTarget: 160',
-      tabletNotice: 'Tablet users can switch control mode anytime while playing', skipTutorial: 'Skip tutorial?',
-      gameOver: 'Game Over', tutorialComplete: 'Tutorial Complete!', victory: 'Victory!', finalWin: 'You Win!',
-      perfect: 'Perfect!', score: 'Score', nextLevel: 'Next Level Soon', playAgain: 'Play Again',
-      tips: 'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
-      selectMode: 'Select Mode', levels: 'Levels', special: 'Special',
-      special1: 'Special1', time: 'Time', stage: 'Stage',
-      newStage: 'New Stage'
+      start:'Start',selectLevel:'Select Level',back:'Back',tutorial:'Tutorial',
+      level1:'Level 1',level2:'Level 2',level3:'Level 3',
+      chooseDevice:'Choose Device',keyboard:'Keyboard',mobile:'Mobile',
+      keyboardGuide:'Use ↑ ↓ ← → to move',mobileGuide:'Swipe to move',
+      ok:'OK',goal:'Goal: Eat food',notice:'Notice: Die if hit wall/self',
+      speedNotice:'Notice: Speed increases when eating food',
+      specialGoal1:'Goal: Eat as much food as possible quickly\nTarget: 80',
+      specialGoal2:'Goal: Eat as much food as possible quickly\nTarget: 140',
+      tabletNotice:'Tablet users can switch control mode anytime while playing',
+      skipTutorial:'Skip tutorial?',gameOver:'Game Over',
+      tutorialComplete:'Tutorial Complete!',victory:'Victory!',finalWin:'You Win!',
+      perfect:'Perfect!',score:'Score',nextLevel:'Next Level Soon',playAgain:'Play Again',
+      tips:'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
+      selectMode:'Select Mode',levels:'Levels',special:'Special',
+      special1:'Special 1',time:'Time',stage:'Stage',target:'Target'
     }
   };
 
@@ -377,19 +267,15 @@
     lang = newLang;
     btnEn.classList.toggle('active', lang === 'en');
     btnCn.classList.toggle('active', lang === 'cn');
-    
     startBtn.textContent = langText[lang].start;
     backFromMode.textContent = langText[lang].back;
     backFromLevels.textContent = langText[lang].back;
     backFromSpecial.textContent = langText[lang].back;
-    
     modeSelect.querySelector('h1').textContent = langText[lang].selectMode;
     modeLevels.textContent = langText[lang].levels;
     modeSpecial.textContent = langText[lang].special;
-    
     levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
     specialSelect.querySelector('h1').textContent = langText[lang].special;
-    
     tips.textContent = langText[lang].tips;
     updateComingSoonText();
     updateScore();
@@ -400,6 +286,15 @@
     localStorage.setItem('specialStar1', specialStar1);
     localStorage.setItem('specialStar2', specialStar2);
     localStorage.setItem('specialHighscore', specialHighscore);
+  }
+
+  function restartCurrentSpecialStage() {
+    clearInterval(gameLoop);
+    clearInterval(specialTimer);
+    score = 0;
+    resetGame();
+    startGameLoop();
+    startSpecialTimer();
   }
 
   function startSpecial1() {
@@ -415,6 +310,7 @@
     isPaused = false;
     pauseBtn.innerHTML = '⏸';
     pauseBtn.style.background = '#F44336';
+    score = 0;
     resetGame();
     startGameLoop();
     startSpecialTimer();
@@ -425,68 +321,43 @@
     if (specialStage === 1) specialTimeLeft = STAGE1_TIME;
     if (specialStage === 2) specialTimeLeft = STAGE2_TIME;
     if (specialStage === 3) specialTimeLeft = STAGE3_TIME;
-
     specialTimer = setInterval(() => {
       if (isPaused || !isGameStarted) return;
       specialTimeLeft--;
       timerElement.innerText = `${langText[lang].time}: ${specialTimeLeft}`;
-      if (specialTimeLeft <= 0) {
-        clearInterval(specialTimer);
-        gameOver();
-      }
+      if (specialTimeLeft <= 0) { clearInterval(specialTimer); gameOver(); }
     }, 1000);
   }
 
   function checkSpecialScore() {
     if (specialStage === 1 && score >= STAGE1_SCORE) {
-      specialStar1 = true;
-      specialStage = 2;
-      saveSpecialProgress();
-      countdownToNewStage();
+      specialStar1 = true; specialStage = 2; saveSpecialProgress(); countdownToNewStage();
     } else if (specialStage === 2 && score >= STAGE2_SCORE) {
-      specialStar2 = true;
-      specialUnlockStage3 = true;
-      specialStage = 3;
-      saveSpecialProgress();
-      countdownToNewStage();
+      specialStar2 = true; specialUnlockStage3 = true; specialStage = 3; saveSpecialProgress(); countdownToNewStage();
     }
   }
 
   function countdownToNewStage() {
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    const m = document.createElement('div');
-    m.className = 'modal';
-    m.innerHTML = `<div class="countdown" id="cd">3</div>`;
-    document.body.appendChild(m);
+    clearInterval(gameLoop); clearInterval(specialTimer);
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<div class="countdown" id="cd">3</div>`; document.body.appendChild(m);
     let n = 3;
     const cdInterval = setInterval(() => {
       n--;
       if (n <= 0) {
-        clearInterval(cdInterval);
-        document.body.removeChild(m);
+        clearInterval(cdInterval); document.body.removeChild(m);
         score = 0;
-        resetGame();
-        startSpecialTimer();
-        startGameLoop();
-      } else {
-        document.getElementById('cd').innerText = n;
-      }
+        resetGame(); startSpecialTimer(); startGameLoop();
+      } else { document.getElementById('cd').innerText = n; }
     }, 800);
   }
 
-  startBtn.onclick = () => {
-    mainMenu.classList.add('hidden');
-    modeSelect.classList.remove('hidden');
-    refreshLevelLock();
-  };
+  startBtn.onclick = () => { mainMenu.classList.add('hidden'); modeSelect.classList.remove('hidden'); updateComingSoonText(); refreshLevelLock(); };
   backFromMode.onclick = () => { modeSelect.classList.add('hidden'); mainMenu.classList.remove('hidden'); };
   modeLevels.onclick = () => { modeSelect.classList.add('hidden'); levelSelect.classList.remove('hidden'); refreshLevelLock(); };
   modeSpecial.onclick = () => {
     if (!modeSpecial.classList.contains('locked')) {
-      modeSelect.classList.add('hidden');
-      specialSelect.classList.remove('hidden');
-      updateComingSoonText();
+      modeSelect.classList.add('hidden'); specialSelect.classList.remove('hidden');
     }
   };
   backFromLevels.onclick = () => { levelSelect.classList.add('hidden'); modeSelect.classList.remove('hidden'); };
@@ -503,16 +374,12 @@
     clearInterval(specialTimer);
     level = lv;
     localStorage.setItem('savedLevel', level);
-    if (level === 0) {
-      askSkipTutorial();
-    } else {
-      startGame();
-    }
+    score = 0;
+    if (level === 0) { askSkipTutorial(); } else { startGame(); }
   }
 
   function askSkipTutorial() {
-    const m = document.createElement('div');
-    m.className = 'modal';
+    const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
       <div style="font-size:28px; color:#fff; margin-bottom:20px;">${langText[lang].skipTutorial}</div>
       <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
@@ -520,21 +387,14 @@
     `;
     document.body.appendChild(m);
     m.querySelector('#skip-yes').onclick = () => {
-      hasDoneTutorial = true;
-      localStorage.setItem('hasDoneTutorial', 'true');
-      document.body.removeChild(m);
-      refreshLevelLock();
-      selectLevel(1);
+      hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial', 'true');
+      document.body.removeChild(m); refreshLevelLock(); selectLevel(1);
     };
-    m.querySelector('#skip-no').onclick = () => {
-      document.body.removeChild(m);
-      chooseDevice();
-    };
+    m.querySelector('#skip-no').onclick = () => { document.body.removeChild(m); chooseDevice(); };
   }
 
   function chooseDevice() {
-    const m = document.createElement('div');
-    m.className = 'modal';
+    const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
       <div style="font-size:30px; margin-bottom:10px; color:#fff;">${langText[lang].chooseDevice}</div>
       <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
@@ -542,85 +402,40 @@
       <div class="notice">${langText[lang].tabletNotice}</div>
     `;
     document.body.appendChild(m);
-    m.querySelector('#kb').onclick = () => { 
-      mode='keyboard'; 
-      document.body.removeChild(m); 
-      showKeyboardGuide(); 
-    };
-    m.querySelector('#tb').onclick = () => { 
-      mode='touch'; 
-      document.body.removeChild(m); 
-      showTouchGuide(); 
-    };
+    m.querySelector('#kb').onclick = () => { mode='keyboard'; document.body.removeChild(m); showKeyboardGuide(); };
+    m.querySelector('#tb').onclick = () => { mode='touch'; document.body.removeChild(m); showTouchGuide(); };
   }
-
   function showKeyboardGuide() {
-    const m = document.createElement('div');
-    m.className = 'modal';
-    m.innerHTML = `
-      <div class="victory-text">${langText[lang].keyboard}</div>
-      <div class="final-score">${langText[lang].keyboardGuide}</div>
-      <button class="restart-btn">${langText[lang].ok}</button>
-    `;
-    document.body.appendChild(m);
-    m.querySelector('.restart-btn').onclick = () => { 
-      document.body.removeChild(m); 
-      startGame(); 
-    };
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<div class="victory-text">${langText[lang].keyboard}</div><div class="final-score">${langText[lang].keyboardGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
+    document.body.appendChild(m); m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
   }
-
   function showTouchGuide() {
-    const m = document.createElement('div');
-    m.className = 'modal';
-    m.innerHTML = `
-      <div class="victory-text">${langText[lang].mobile}</div>
-      <div class="final-score">${langText[lang].mobileGuide}</div>
-      <button class="restart-btn">${langText[lang].ok}</button>
-    `;
-    document.body.appendChild(m);
-    m.querySelector('.restart-btn').onclick = () => { 
-      document.body.removeChild(m); 
-      startGame(); 
-    };
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<div class="victory-text">${langText[lang].mobile}</div><div class="final-score">${langText[lang].mobileGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
+    document.body.appendChild(m); m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
   }
 
   function startGame() {
-    clearInterval(specialTimer);
-    isSpecialMode = false;
-    mainMenu.classList.add('hidden');
-    levelSelect.classList.add('hidden');
-    scoreRow.classList.remove('hidden');
-    gameBoard.classList.remove('hidden');
-    tips.classList.remove('hidden');
-    isGameStarted = true;
-    isPaused = false;
-    pauseBtn.innerHTML = '⏸';
-    pauseBtn.style.background = '#F44336';
+    isSpecialMode = false; clearInterval(specialTimer);
+    mainMenu.classList.add('hidden'); levelSelect.classList.add('hidden');
+    scoreRow.classList.remove('hidden'); gameBoard.classList.remove('hidden'); tips.classList.remove('hidden');
+    isGameStarted = true; isPaused = false;
+    pauseBtn.innerHTML = '⏸'; pauseBtn.style.background = '#F44336';
+    score = 0;
     resetGame();
     startGameLoop();
   }
 
   function resetGame() {
-    clearInterval(gameLoop);
-    gameBoard.classList.remove('tutorial');
-    timerElement.innerText = '';
-
+    clearInterval(gameLoop); gameBoard.classList.remove('tutorial'); timerElement.innerText = '';
     if (isSpecialMode) {
-      gridSize = 20;
-      baseSpeed = 220;
-      if (specialStage === 1) {
-        gameBoard.classList.add('tutorial');
-      }
-    } else if (level === 0) {
-      gridSize = 20; baseSpeed = 280;
-      gameBoard.classList.add('tutorial');
-    } else if (level === 1) {
-      gridSize = 20; baseSpeed = 180;
-    } else if (level === 2) {
-      gridSize = 20; baseSpeed = 190;
-    } else if (level === 3) {
-      gridSize = 23; baseSpeed = 160;
-    }
+      gridSize = 20; baseSpeed = 220;
+      if (specialStage === 1) gameBoard.classList.add('tutorial');
+    } else if (level === 0) { gridSize = 20; baseSpeed = 280; gameBoard.classList.add('tutorial');
+    } else if (level === 1) { gridSize = 20; baseSpeed = 180;
+    } else if (level === 2) { gridSize = 20; baseSpeed = 190;
+    } else if (level === 3) { gridSize = 23; baseSpeed = 160; }
     speed = baseSpeed;
     gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
     gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
@@ -639,124 +454,92 @@
     if (isSpecialMode) {
       scoreElement.innerText = `${langText[lang].special1} ${langText[lang].stage}:${specialStage} | ${langText[lang].score}: ${score}`;
     } else {
-      let label;
-      if (level === 0) label = langText[lang].tutorial;
-      else if (level === 1) label = langText[lang].level1;
-      else if (level === 2) label = langText[lang].level2;
-      else label = langText[lang].level3;
-      scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}`;
+      let label = [langText[lang].tutorial, langText[lang].level1, langText[lang].level2, langText[lang].level3][level];
+      let targetTxt = lang === 'en' ? 'Target' : '目标';
+      let target = [0, LEVEL1_PASS, LEVEL2_PASS, LEVEL3_PASS][level];
+      let targetStr = level > 0 ? ` | ${targetTxt}: ${target}` : '';
+      scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}${targetStr}`;
     }
   }
 
   function getRandomColor(){
-    const c=['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'];
-    return c[Math.floor(Math.random()*c.length)];
+    return ['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'][Math.floor(Math.random()*9)];
   }
   function spawnFood(){
-    let f;
-    do{
-      f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
-    }while(snake.some(s=>s.x===f.x&&s.y===f.y));
-    return f;
+    let f; do{ f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
+    }while(snake.some(s=>s.x===f.x&&s.y===f.y)); return f;
   }
   function moveFoodSmart(){
     if(level!==3||isPaused||isSpecialMode)return;
-    const h=snake[0];
-    const d=Math.hypot(h.x-food.x,h.y-food.y);
+    const h=snake[0]; const d=Math.hypot(h.x-food.x,h.y-food.y);
     const s=d<4?0.5:d<7?1:1.5;
-    let dx=0,dy=0;
-    Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);
+    let dx=0,dy=0; Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);
     const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);
-    if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){
-      food.x=nx;food.y=ny;
-    }
+    if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){ food.x=nx;food.y=ny; }
   }
 
   function update() {
     if (isPaused || !isGameStarted) return;
     const h = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
-    if (h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)) {
-      gameOver(); return;
-    }
+    if (h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)) { gameOver(); return; }
     snake.unshift(h);
     let ate = false;
     if (h.x === food.x && h.y === food.y) {
-      score += 10;
-      updateScore();
-      food = spawnFood();
-      ate = true;
+      score += 10; updateScore(); food = spawnFood(); ate = true;
       if (isSpecialMode) checkSpecialScore();
-      if (level === 2 && !isSpecialMode) {
-        speed = Math.max(85, speed - 8);
-        startGameLoop();
-      }
-    } else {
-      snake.pop();
-    }
+      if (level === 2 && !isSpecialMode) { speed = Math.max(85, speed - 8); startGameLoop(); }
+    } else { snake.pop(); }
 
     if (!isSpecialMode) {
-      if (level === 0 && score >= 40) {
-        hasDoneTutorial = true;
-        localStorage.setItem('hasDoneTutorial','true');
-        tutorialComplete(); return;
-      }
-      if (level === 1 && score >= 150) {
-        unlockedLevel2 = true;
-        localStorage.setItem('unlockedLevel2','true');
-        victory(); return;
-      }
-      if (level === 2 && score >= 150) {
-        unlockedLevel3 = true;
-        localStorage.setItem('unlockedLevel3','true');
-        victory(); return;
-      }
-      if (level === 3 && score >= 150) {
-        finalWin(); return;
-      }
+      if (level === 0 && score >= TUTORIAL_PASS) { hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); tutorialComplete(); return; }
+      if (level === 1 && score >= LEVEL1_PASS) { unlockedLevel2 = true; localStorage.setItem('unlockedLevel2','true'); victory(); return; }
+      if (level === 2 && score >= LEVEL2_PASS) { unlockedLevel3 = true; localStorage.setItem('unlockedLevel3','true'); victory(); return; }
+      if (level === 3 && score >= LEVEL3_PASS) { finalWin(); return; }
       if (level === 3 && !ate) setTimeout(moveFoodSmart, 300);
     }
     draw();
   }
 
   function draw() {
-    gameBoard.innerHTML = '';
-    const t = document.createElement('div');
-    t.className = 'tutorial-text';
-    
+    gameBoard.innerHTML = ''; const t = document.createElement('div'); t.className = 'tutorial-text';
     if (isSpecialMode && specialStage === 1) {
       t.innerText = langText[lang].specialGoal1;
     } else if (isSpecialMode && specialStage === 2) {
-      t.innerText = langText[lang].specialGoal2;
+      t.innerHTML = langText[lang].specialGoal2.replace('140', '<span style="color:#f44336;">140</span>');
     } else if (!isSpecialMode && level === 0) {
       t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
     } else if (!isSpecialMode && level === 2) {
       t.innerText = langText[lang].speedNotice;
     }
-    
-    if (t.innerText) {
-      gameBoard.appendChild(t);
-    }
-
+    if (t.innerText || t.innerHTML) gameBoard.appendChild(t);
     snake.forEach((s,i)=>{
       const e=document.createElement('div');
-      e.style.gridColumnStart=s.x+1;
-      e.style.gridRowStart=s.y+1;
+      e.style.gridColumnStart=s.x+1; e.style.gridRowStart=s.y+1;
       e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';
       gameBoard.appendChild(e);
     });
     const f=document.createElement('div');
-    f.style.gridColumnStart=food.x+1;
-    f.style.gridRowStart=food.y+1;
-    f.style.backgroundColor=food.color;
-    f.style.border='1px solid #fff';
+    f.style.gridColumnStart=food.x+1; f.style.gridRowStart=food.y+1;
+    f.style.backgroundColor=food.color; f.style.border='1px solid #fff';
     gameBoard.appendChild(f);
   }
 
+  // ========== 最终修复：S1结束后自动更新最高分 ==========
   function gameOver(){
     clearInterval(gameLoop);
     clearInterval(specialTimer);
+    
+    // 只有S1模式，才更新最高分
+    if (isSpecialMode) {
+      if (score > specialHighscore) {
+        specialHighscore = score;
+        saveSpecialProgress(); // 保存到本地
+      }
+    }
+
     showModal(langText[lang].gameOver, `${langText[lang].score}: ${score}`, false, true);
   }
+
   function tutorialComplete(){clearInterval(gameLoop);showModal(langText[lang].tutorialComplete,langText[lang].nextLevel,true,false);}
   function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
   function finalWin(){clearInterval(gameLoop);showModal(langText[lang].finalWin,langText[lang].perfect,false,true);}
@@ -764,52 +547,43 @@
   function showModal(title,sub,g,r){
     const m=document.createElement('div');m.className='modal';
     const tc=title===langText[lang].gameOver?'gameover-text':'victory-text';
+    
+    // 实时显示最新最高分
     let extra = '';
     if (isSpecialMode) {
       extra = `
-        <div class="star-row">
-          <span class="star ${specialStar1 ? 'active' : ''}">★</span>
-          <span class="star ${specialStar2 ? 'active' : ''}">★</span>
-          <span class="star">${specialHighscore}</span>
-        </div>
-      `;
+      <div class="star-row">
+        <span class="star ${specialStar1 ? 'active' : ''}">★</span>
+        <span class="star ${specialStar2 ? 'active' : ''}">★</span>
+        <span class="star">${specialHighscore}</span>
+      </div>`;
     }
+
     const rh=r?`<button class="restart-btn">${langText[lang].playAgain}</button>`:'';
     m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${extra}${rh}`;
     document.body.appendChild(m);
+    
     if(r){
       m.querySelector('.restart-btn').onclick=()=>{
-        document.body.removeChild(m);
-        isPaused=false;
-        pauseBtn.innerHTML='⏸';
-        pauseBtn.style.background='#F44336';
+        document.body.removeChild(m); isPaused=false; pauseBtn.innerHTML='⏸'; pauseBtn.style.background='#F44336';
         if (isSpecialMode) {
-          startSpecial1();
+          restartCurrentSpecialStage();
         } else {
-          resetGame();
-          startGameLoop();
+          score = 0; resetGame(); startGameLoop();
         }
       };
     }
     if(g){
-      setTimeout(()=>{
-        document.body.removeChild(m);
-        startCountdown();
-      },1300);
+      setTimeout(()=>{ document.body.removeChild(m); startCountdown(); },1300);
     }
   }
 
   function startCountdown(){
     const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="countdown" id="cd">3</div>`;document.body.appendChild(m);
-    const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);resetGame();startGameLoop();}else{cd.innerText=n;}},800);
+    const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);score=0;resetGame();startGameLoop();}else{cd.innerText=n;}},800);
   }
 
-  function togglePause(){
-    if(!isGameStarted)return;
-    isPaused=!isPaused;
-    pauseBtn.innerHTML=isPaused?'▶':'⏸';
-    pauseBtn.style.background=isPaused?'#4CAF50':'#F44336';
-  }
+  function togglePause(){ if(!isGameStarted)return; isPaused=!isPaused; pauseBtn.innerHTML=isPaused?'▶':'⏸'; pauseBtn.style.background=isPaused?'#4CAF50':'#F44336'; }
   pauseBtn.onclick=togglePause;
   function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
 
@@ -822,32 +596,34 @@
     if(k===R&&direction.x!==-1)direction={x:1,y:0};
     if(k===D&&direction.y!==-1)direction={x:0,y:1};
   });
-
-  document.addEventListener('touchstart',e=>{
-    touchStartX=e.touches[0].clientX;
-    touchStartY=e.touches[0].clientY;
-  });
-
+  document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
   document.addEventListener('touchend',e=>{
     if(!isGameStarted||isPaused)return;
-    const x=e.changedTouches[0].clientX;
-    const y=e.changedTouches[0].clientY;
-    const dx=x-touchStartX;
-    const dy=y-touchStartY;
+    const dx=e.changedTouches[0].clientX-touchStartX;
+    const dy=e.changedTouches[0].clientY-touchStartY;
     if(Math.abs(dx)>Math.abs(dy)){
-      if(dx>20&&direction.x!==-1)direction={x:1,y:0};
-      if(dx<-20&&direction.x!==1)direction={x:-1,y:0};
+      if(dx>20)direction={x:1,y:0};else if(dx<-20)direction={x:-1,y:0};
     }else{
-      if(dy<-20&&direction.y!==1)direction={x:0,y:-1};
-      if(dy>20&&direction.y!==-1)direction={x:0,y:1};
+      if(dy<-20)direction={x:0,y:-1};else if(dy>20)direction={x:0,y:1};
     }
   });
-  
+
   btnEn.onclick = () => setLang('en');
   btnCn.onclick = () => setLang('cn');
+  
+  function refreshLevelLock() {
+    level1.classList.toggle('locked', !hasDoneTutorial);
+    level1.classList.toggle('active', hasDoneTutorial);
+    level2.classList.toggle('locked', !unlockedLevel2);
+    level2.classList.toggle('active', unlockedLevel2);
+    level3.classList.toggle('locked', !unlockedLevel3);
+    level3.classList.toggle('active', unlockedLevel3);
+    modeSpecial.classList.toggle('locked', !unlockedLevel3);
+  }
 
   setLang(lang);
   refreshLevelLock();
+  updateComingSoonText();
 </script>
 </body>
 </html>
