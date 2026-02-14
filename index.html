@@ -70,7 +70,7 @@
     }
     #game-board.tutorial {
       background-image: linear-gradient(#333 1px, transparent 1px),
-                        linear-gradient(90deg #333 1px, transparent 1px);
+                         linear-gradient(90deg #333 1px, transparent 1px);
       background-size: 20px 20px;
     }
     .tutorial-text {
@@ -98,6 +98,12 @@
     .restart-btn {
       padding: 12px 24px; border: none; border-radius: 50px;
       background: #2196F3; color: white; font-size: 16px; cursor: pointer;
+      margin: 5px;
+    }
+    .back-btn {
+      padding: 12px 24px; border: none; border-radius: 50px;
+      background: #666; color: white; font-size: 16px; cursor: pointer;
+      margin: 5px;
     }
     .star-row { display: flex; gap: 10px; margin: 5px 0; }
     .star { font-size: 24px; color: #ccc; }
@@ -105,7 +111,6 @@
   </style>
 </head>
 <body>
-
 <div id="mainMenu" class="screen">
   <h1 class="menu-title">Snake Game</h1>
   <button class="menu-btn primary" id="startBtn">Start</button>
@@ -114,14 +119,12 @@
     <button class="lang-btn" id="btn-cn">中文</button>
   </div>
 </div>
-
 <div id="modeSelect" class="screen hidden">
   <h1 class="menu-title">Select Mode</h1>
   <button class="mode-btn levels" id="modeLevels">Levels</button>
   <button class="mode-btn special locked" id="modeSpecial">Special</button>
   <button class="menu-btn" id="backFromMode">Back</button>
 </div>
-
 <div id="levelSelect" class="screen hidden">
   <h1 class="menu-title">Select Level</h1>
   <div class="level-grid" id="levelGrid">
@@ -134,7 +137,6 @@
   </div>
   <button class="menu-btn" id="backFromLevels">Back</button>
 </div>
-
 <div id="specialSelect" class="screen hidden">
   <h1 class="menu-title">Special</h1>
   <div class="level-grid" id="specialGrid">
@@ -147,7 +149,6 @@
   </div>
   <button class="menu-btn" id="backFromSpecial">Back</button>
 </div>
-
 <div class="score-row hidden" id="scoreRow">
   <div id="score">Score: 0</div>
   <div id="timer">Time: 0</div>
@@ -186,7 +187,6 @@
   let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
   let unlockedLevel3 = localStorage.getItem('unlockedLevel3') === 'true';
   let savedLevel = parseInt(localStorage.getItem('savedLevel')) || 0;
-
   let isSpecialMode = false;
   let specialStage = 1;
   let specialUnlockStage3 = localStorage.getItem('specialUnlockStage3') === 'true';
@@ -214,7 +214,6 @@
   const STAGE2_TIME = 60;
   const STAGE2_SCORE = 140;
   const STAGE3_TIME = 90;
-
   const LEVEL1_PASS = 150;
   const LEVEL2_PASS = 150;
   const LEVEL3_PASS = 150;
@@ -240,6 +239,7 @@
       skipTutorial:'是否跳过教学关？',gameOver:'游戏结束',
       tutorialComplete:'教学完成！',victory:'恭喜过关！',finalWin:'你赢了！',
       perfect:'完美！',score:'分数',nextLevel:'即将进入下一关',playAgain:'重新开始',
+      backToMenu:'回到主页',
       tips:'电脑: ↑↓←→ 移动 | 空格暂停 | 手机: 滑动移动 | 点圆圈暂停',
       selectMode:'选择模式',levels:'普通关卡',special:'特殊玩法',
       special1:'特殊1',time:'时间',stage:'阶段',target:'目标'
@@ -257,6 +257,7 @@
       skipTutorial:'Skip tutorial?',gameOver:'Game Over',
       tutorialComplete:'Tutorial Complete!',victory:'Victory!',finalWin:'You Win!',
       perfect:'Perfect!',score:'Score',nextLevel:'Next Level Soon',playAgain:'Play Again',
+      backToMenu:'Back to Menu',
       tips:'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
       selectMode:'Select Mode',levels:'Levels',special:'Special',
       special1:'Special 1',time:'Time',stage:'Stage',target:'Target'
@@ -362,7 +363,6 @@
   };
   backFromLevels.onclick = () => { levelSelect.classList.add('hidden'); modeSelect.classList.remove('hidden'); };
   backFromSpecial.onclick = () => { specialSelect.classList.add('hidden'); modeSelect.classList.remove('hidden'); };
-
   levelTutorial.onclick = () => selectLevel(0);
   level1.onclick = () => { if (hasDoneTutorial) selectLevel(1); };
   level2.onclick = () => { if (unlockedLevel2) selectLevel(2); };
@@ -405,11 +405,13 @@
     m.querySelector('#kb').onclick = () => { mode='keyboard'; document.body.removeChild(m); showKeyboardGuide(); };
     m.querySelector('#tb').onclick = () => { mode='touch'; document.body.removeChild(m); showTouchGuide(); };
   }
+
   function showKeyboardGuide() {
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `<div class="victory-text">${langText[lang].keyboard}</div><div class="final-score">${langText[lang].keyboardGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
     document.body.appendChild(m); m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
   }
+
   function showTouchGuide() {
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `<div class="victory-text">${langText[lang].mobile}</div><div class="final-score">${langText[lang].mobileGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
@@ -465,10 +467,12 @@
   function getRandomColor(){
     return ['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'][Math.floor(Math.random()*9)];
   }
+
   function spawnFood(){
     let f; do{ f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
     }while(snake.some(s=>s.x===f.x&&s.y===f.y)); return f;
   }
+
   function moveFoodSmart(){
     if(level!==3||isPaused||isSpecialMode)return;
     const h=snake[0]; const d=Math.hypot(h.x-food.x,h.y-food.y);
@@ -489,7 +493,6 @@
       if (isSpecialMode) checkSpecialScore();
       if (level === 2 && !isSpecialMode) { speed = Math.max(85, speed - 8); startGameLoop(); }
     } else { snake.pop(); }
-
     if (!isSpecialMode) {
       if (level === 0 && score >= TUTORIAL_PASS) { hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); tutorialComplete(); return; }
       if (level === 1 && score >= LEVEL1_PASS) { unlockedLevel2 = true; localStorage.setItem('unlockedLevel2','true'); victory(); return; }
@@ -524,11 +527,11 @@
     gameBoard.appendChild(f);
   }
 
-  // ========== 最终修复：S1结束后自动更新最高分 ==========
+  // ========== 最高分逻辑（你原版完美保留） ==========
   function gameOver(){
     clearInterval(gameLoop);
     clearInterval(specialTimer);
-    
+
     // 只有S1模式，才更新最高分
     if (isSpecialMode) {
       if (score > specialHighscore) {
@@ -536,7 +539,6 @@
         saveSpecialProgress(); // 保存到本地
       }
     }
-
     showModal(langText[lang].gameOver, `${langText[lang].score}: ${score}`, false, true);
   }
 
@@ -544,10 +546,24 @@
   function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
   function finalWin(){clearInterval(gameLoop);showModal(langText[lang].finalWin,langText[lang].perfect,false,true);}
 
+  // ========== 新增：回到主页逻辑 + 双按钮 ==========
+  function backToMainMenu() {
+    isGameStarted = false;
+    isPaused = false;
+    clearInterval(gameLoop);
+    clearInterval(specialTimer);
+    scoreRow.classList.add('hidden');
+    gameBoard.classList.add('hidden');
+    tips.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    pauseBtn.innerHTML = '⏸';
+    pauseBtn.style.background = '#333';
+  }
+
   function showModal(title,sub,g,r){
     const m=document.createElement('div');m.className='modal';
     const tc=title===langText[lang].gameOver?'gameover-text':'victory-text';
-    
+
     // 实时显示最新最高分
     let extra = '';
     if (isSpecialMode) {
@@ -559,11 +575,20 @@
       </div>`;
     }
 
-    const rh=r?`<button class="restart-btn">${langText[lang].playAgain}</button>`:'';
-    m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${extra}${rh}`;
-    document.body.appendChild(m);
-    
+    // 双按钮：重新开始 + 回到主页
+    let btnHtml = '';
     if(r){
+      btnHtml = `
+        <button class="restart-btn">${langText[lang].playAgain}</button>
+        <button class="back-btn">${langText[lang].backToMenu}</button>
+      `;
+    }
+
+    m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${extra}${btnHtml}`;
+    document.body.appendChild(m);
+
+    if(r){
+      // 重新开始
       m.querySelector('.restart-btn').onclick=()=>{
         document.body.removeChild(m); isPaused=false; pauseBtn.innerHTML='⏸'; pauseBtn.style.background='#F44336';
         if (isSpecialMode) {
@@ -572,7 +597,13 @@
           score = 0; resetGame(); startGameLoop();
         }
       };
+      // 回到主页
+      m.querySelector('.back-btn').onclick=()=>{
+        document.body.removeChild(m);
+        backToMainMenu();
+      };
     }
+
     if(g){
       setTimeout(()=>{ document.body.removeChild(m); startCountdown(); },1300);
     }
@@ -596,6 +627,7 @@
     if(k===R&&direction.x!==-1)direction={x:1,y:0};
     if(k===D&&direction.y!==-1)direction={x:0,y:1};
   });
+
   document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
   document.addEventListener('touchend',e=>{
     if(!isGameStarted||isPaused)return;
@@ -610,7 +642,7 @@
 
   btnEn.onclick = () => setLang('en');
   btnCn.onclick = () => setLang('cn');
-  
+
   function refreshLevelLock() {
     level1.classList.toggle('locked', !hasDoneTutorial);
     level1.classList.toggle('active', hasDoneTutorial);
