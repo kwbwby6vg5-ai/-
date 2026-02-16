@@ -2,9 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Snake Game</title>
   <style>
+    /* 核心适配变量：所有尺寸基于此变量等比例缩放 */
+    :root {
+      --base-width: 400px; /* 基准棋盘宽度（电脑/iPad标准尺寸） */
+      --scale: 1; /* 缩放比例，JS自动计算 */
+      --cell-size: calc(20px * var(--scale)); /* 每个格子的大小 */
+      --safe-top: env(safe-area-inset-top); /* 刘海屏顶部安全距离 */
+      --safe-bottom: env(safe-area-inset-bottom); /* 底部安全距离 */
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #111;
@@ -16,143 +25,358 @@
       font-family: Arial, sans-serif;
       touch-action: none;
       min-height: 100vh;
-      padding: 10px 0;
+      min-height: 100dvh;
+      padding: calc(10px * var(--scale)) 0;
+      padding-top: max(calc(10px * var(--scale)), var(--safe-top));
+      padding-bottom: max(calc(10px * var(--scale)), var(--safe-bottom));
+      width: 100%;
+      overflow-x: hidden;
     }
-    .screen { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
+    .screen { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: calc(20px * var(--scale)); 
+      padding: calc(20px * var(--scale)); 
+      width: 100%;
+      max-width: calc(var(--base-width) * 1.2);
+    }
     .hidden { display: none !important; }
-    .menu-title { font-size: 36px; color: #4CAF50; }
+    .menu-title { 
+      font-size: calc(36px * var(--scale)); 
+      color: #4CAF50; 
+      text-align: center;
+    }
     .mode-btn {
-      width: 220px; height: 80px; border-radius: 16px; border: none;
-      font-size: 24px; font-weight: bold; color: white;
-      cursor: pointer; transition: all 0.2s;
+      width: calc(220px * var(--scale)); 
+      height: calc(80px * var(--scale)); 
+      border-radius: calc(16px * var(--scale)); 
+      border: none;
+      font-size: calc(24px * var(--scale)); 
+      font-weight: bold; 
+      color: white;
+      cursor: pointer; 
+      transition: all 0.2s;
     }
     .mode-btn.levels { background: #4CAF50; }
     .mode-btn.special { background: #64B5F6; }
     .mode-btn.locked { background: #555; opacity: 0.6; cursor: default; }
     .mode-btn.checked { background: #999; opacity: 0.7; cursor: default; }
     .level-grid {
-      display: flex; gap: 12px; flex-wrap: nowrap;
-      justify-content: center; margin: 10px 0 20px;
+      display: flex; 
+      gap: calc(12px * var(--scale)); 
+      flex-wrap: wrap;
+      justify-content: center; 
+      margin: calc(10px * var(--scale)) 0 calc(20px * var(--scale));
+      width: 100%;
     }
     .level-block {
-      width: 80px; height: 80px; border-radius: 12px;
-      background: #333; border: 2px solid #444;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: bold; color: #fff;
-      cursor: pointer; text-align: center; line-height: 1.2;
+      width: calc(80px * var(--scale)); 
+      height: calc(80px * var(--scale)); 
+      border-radius: calc(12px * var(--scale));
+      background: #333; 
+      border: calc(2px * var(--scale)) solid #444;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      font-size: calc(18px * var(--scale)); 
+      font-weight: bold; 
+      color: #fff;
+      cursor: pointer; 
+      text-align: center; 
+      line-height: 1.2;
     }
     .level-block.active { background: #4CAF50; border-color: #8BC34A; }
     .level-block.tutorial { background: #2196F3; border-color: #03A9F3; }
     .level-block.locked { background: #222; border-color: #333; color: #555; cursor: default; }
     .menu-btn {
-      padding: 12px 24px; font-size: 18px; border-radius: 12px;
-      border: none; background: #333; color: white; min-width: 180px;
-      cursor: pointer; transition: all 0.2s;
+      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
+      font-size: calc(18px * var(--scale)); 
+      border-radius: calc(12px * var(--scale));
+      border: none; 
+      background: #333; 
+      color: white; 
+      min-width: calc(180px * var(--scale));
+      cursor: pointer; 
+      transition: all 0.2s;
     }
     .menu-btn.primary { background: #4CAF50; }
     .menu-btn.warning { background: #FF9800; }
     .menu-btn:active { transform: scale(0.98); }
-    .lang-group { display: flex; gap: 10px; margin-top: 10px; }
+    .lang-group { 
+      display: flex; 
+      gap: calc(10px * var(--scale)); 
+      margin-top: calc(10px * var(--scale)); 
+      flex-wrap: wrap;
+      justify-content: center;
+    }
     .lang-btn {
-      padding: 8px 16px; border-radius: 8px; border: none;
-      background: #555; color: white; font-size: 16px; cursor: pointer;
+      padding: calc(8px * var(--scale)) calc(16px * var(--scale)); 
+      border-radius: calc(8px * var(--scale)); 
+      border: none;
+      background: #555; 
+      color: white; 
+      font-size: calc(16px * var(--scale)); 
+      cursor: pointer;
     }
     .lang-btn.active { background: #4CAF50; }
-    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
-    #score { font-size: 24px; }
-    #timer { font-size: 24px; color: #FFEB3B; margin-left: 10px; }
-    #goldCount { font-size: 24px; color: #FFD700; }
+    .score-row { 
+      display: flex; 
+      align-items: center; 
+      gap: calc(12px * var(--scale)); 
+      margin-bottom: calc(10px * var(--scale)); 
+      flex-wrap: wrap; 
+      justify-content: center;
+      width: 100%;
+    }
+    #score { font-size: calc(24px * var(--scale)); }
+    #timer { font-size: calc(24px * var(--scale)); color: #FFEB3B; margin-left: calc(10px * var(--scale)); }
+    #goldCount { font-size: calc(24px * var(--scale)); color: #FFD700; }
     #pause-btn {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: #333; border: 2px solid #666;
-      box-shadow: 0 2px 4 rgba(0,0,0,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; color: #fff; cursor: pointer; transition: all 0.2s;
+      width: calc(48px * var(--scale)); 
+      height: calc(48px * var(--scale)); 
+      border-radius: 50%;
+      background: #333; 
+      border: calc(2px * var(--scale)) solid #666;
+      box-shadow: 0 calc(2px * var(--scale)) calc(4px * var(--scale)) rgba(0,0,0,0.3);
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      font-size: calc(20px * var(--scale)); 
+      color: #fff; 
+      cursor: pointer; 
+      transition: all 0.2s;
     }
     #game-board {
-      background: #222; display: grid; gap: 1px;
-      border: 2px solid #444; position: relative;
+      background: #222; 
+      display: grid; 
+      gap: calc(1px * var(--scale));
+      border: calc(2px * var(--scale)) solid #444; 
+      position: relative;
+      grid-template-columns: repeat(20, var(--cell-size));
+      grid-template-rows: repeat(20, var(--cell-size));
     }
     #game-board.tutorial {
-      background-image: linear-gradient(#333 1px, transparent 1px),
-                         linear-gradient(90deg, #333 1px, transparent 1px);
-      background-size: 20px 20px;
+      background-image: linear-gradient(#333 calc(1px * var(--scale)), transparent calc(1px * var(--scale))),
+                        linear-gradient(90deg, #333 calc(1px * var(--scale)), transparent calc(1px * var(--scale)));
+      background-size: var(--cell-size) var(--cell-size);
     }
     .tutorial-text {
-      position: absolute; top: 10px; left: 10px;
-      color: #f44336; font-size: 14px; font-weight: bold;
-      line-height: 1.4; text-shadow: 0 0 2px #000; z-index: 10;
+      position: absolute; 
+      top: calc(10px * var(--scale)); 
+      left: calc(10px * var(--scale));
+      color: #f44336; 
+      font-size: calc(14px * var(--scale)); 
+      font-weight: bold;
+      line-height: 1.4; 
+      text-shadow: 0 0 calc(2px * var(--scale)) #000; 
+      z-index: 10;
+      max-width: 90%;
     }
-    #tips { margin-top: 10px; color: #888; text-align: center; }
+    #tips { 
+      margin-top: calc(10px * var(--scale)); 
+      color: #888; 
+      text-align: center; 
+      font-size: calc(14px * var(--scale));
+      padding: 0 calc(10px * var(--scale));
+    }
     .modal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 999;
-      padding: 20px;
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      background: rgba(0,0,0,0.95); 
+      display: flex; 
+      flex-direction: column;
+      align-items: center; 
+      justify-content: center; 
+      z-index: 999;
+      padding: calc(20px * var(--scale));
+      padding-top: max(calc(20px * var(--scale)), var(--safe-top));
+      padding-bottom: max(calc(20px * var(--scale)), var(--safe-bottom));
     }
     .device-btn, .skip-btn {
-      font-size: 22px; padding: 14px 28px; margin: 10px;
-      border-radius: 12px; border: none; background: #4CAF50;
-      color: white; cursor: pointer;
+      font-size: calc(22px * var(--scale)); 
+      padding: calc(14px * var(--scale)) calc(28px * var(--scale)); 
+      margin: calc(10px * var(--scale));
+      border-radius: calc(12px * var(--scale)); 
+      border: none; 
+      background: #4CAF50;
+      color: white; 
+      cursor: pointer;
     }
-    .notice { font-size: 14px; color: #FFEB3B; margin-top: 15px; max-width: 300px; text-align: center; line-height: 1.4; }
-    .victory-text { font-size: 50px; color: #FFEB3B; text-shadow: 0 0 15px #FFEB3B; margin-bottom: 20px; }
-    .gameover-text { font-size: 50px; color: #F44336; text-shadow: 0 0 15px #F44336; margin-bottom: 20px; }
-    .countdown { font-size: 80px; color: #4CAF50; font-weight: bold; animation: flash 0.6s infinite alternate; }
-    .stage-title { font-size: 36px; color: #FFEB3B; margin-bottom: 20px; font-weight: bold; }
-    .sign-title { font-size: 32px; color: #FFD700; margin-bottom: 20px; font-weight: bold; }
-    .sign-desc { font-size: 18px; color: #fff; margin-bottom: 20px; text-align: center; }
-    .sign-list { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 25px; max-width: 600px; width: 100%; }
+    .notice { 
+      font-size: calc(14px * var(--scale)); 
+      color: #FFEB3B; 
+      margin-top: calc(15px * var(--scale)); 
+      max-width: calc(300px * var(--scale)); 
+      text-align: center; 
+      line-height: 1.4; 
+    }
+    .victory-text { 
+      font-size: calc(50px * var(--scale)); 
+      color: #FFEB3B; 
+      text-shadow: 0 0 calc(15px * var(--scale)) #FFEB3B; 
+      margin-bottom: calc(20px * var(--scale));
+      text-align: center;
+    }
+    .gameover-text { 
+      font-size: calc(50px * var(--scale)); 
+      color: #F44336; 
+      text-shadow: 0 0 calc(15px * var(--scale)) #F44336; 
+      margin-bottom: calc(20px * var(--scale));
+      text-align: center;
+    }
+    .countdown { 
+      font-size: calc(80px * var(--scale)); 
+      color: #4CAF50; 
+      font-weight: bold; 
+      animation: flash 0.6s infinite alternate; 
+    }
+    .stage-title { 
+      font-size: calc(36px * var(--scale)); 
+      color: #FFEB3B; 
+      margin-bottom: calc(20px * var(--scale)); 
+      font-weight: bold;
+      text-align: center;
+    }
+    .sign-title { 
+      font-size: calc(32px * var(--scale)); 
+      color: #FFD700; 
+      margin-bottom: calc(20px * var(--scale)); 
+      font-weight: bold;
+      text-align: center;
+    }
+    .sign-desc { 
+      font-size: calc(18px * var(--scale)); 
+      color: #fff; 
+      margin-bottom: calc(20px * var(--scale)); 
+      text-align: center; 
+      max-width: 90%;
+    }
+    .sign-list { 
+      display: grid; 
+      grid-template-columns: repeat(7, 1fr); 
+      gap: calc(10px * var(--scale)); 
+      margin-bottom: calc(25px * var(--scale)); 
+      max-width: calc(600px * var(--scale)); 
+      width: 100%; 
+    }
     .sign-item {
-      background: #333; border-radius: 8px; padding: 10px 5px;
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      border: 2px solid #444;
+      background: #333; 
+      border-radius: calc(8px * var(--scale)); 
+      padding: calc(10px * var(--scale)) calc(5px * var(--scale));
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: calc(5px * var(--scale));
+      border: calc(2px * var(--scale)) solid #444;
     }
     .sign-item.checked { background: #4CAF50; border-color: #8BC34A; }
     .sign-item.today { border-color: #FFD700; }
-    .sign-day { font-size: 14px; color: #aaa; }
+    .sign-day { font-size: calc(14px * var(--scale)); color: #aaa; }
     .sign-item.checked .sign-day { color: #fff; }
-    .sign-reward { font-size: 16px; font-weight: bold; color: #FFD700; }
+    .sign-reward { font-size: calc(16px * var(--scale)); font-weight: bold; color: #FFD700; }
     .sign-item.checked .sign-reward { color: #fff; }
-    .sign-progress { width: 100%; max-width: 600px; margin-bottom: 20px; }
-    .progress-bar { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+    .sign-progress { 
+      width: 100%; 
+      max-width: calc(600px * var(--scale)); 
+      margin-bottom: calc(20px * var(--scale)); 
+    }
+    .progress-bar { 
+      width: 100%; 
+      height: calc(12px * var(--scale)); 
+      background: #333; 
+      border-radius: calc(6px * var(--scale)); 
+      overflow: hidden; 
+      margin-bottom: calc(10px * var(--scale)); 
+    }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); transition: width 0.3s; }
-    .progress-text { font-size: 16px; color: #fff; text-align: center; }
-    .reward-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; width: 100%; max-width: 600px; margin-bottom: 25px; }
+    .progress-text { font-size: calc(16px * var(--scale)); color: #fff; text-align: center; }
+    .reward-grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr 1fr; 
+      gap: calc(15px * var(--scale)); 
+      width: 100%; 
+      max-width: calc(600px * var(--scale)); 
+      margin-bottom: calc(25px * var(--scale)); 
+    }
     .reward-card {
-      background: #333; border-radius: 12px; padding: 15px 10px;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      border: 2px solid #444; text-align: center;
+      background: #333; 
+      border-radius: calc(12px * var(--scale)); 
+      padding: calc(15px * var(--scale)) calc(10px * var(--scale));
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: calc(8px * var(--scale));
+      border: calc(2px * var(--scale)) solid #444; 
+      text-align: center;
     }
     .reward-card.unlocked { border-color: #4CAF50; background: #2E7D32; }
-    .reward-day { font-size: 16px; font-weight: bold; color: #fff; }
-    .reward-content { font-size: 14px; color: #FFD700; }
+    .reward-day { font-size: calc(16px * var(--scale)); font-weight: bold; color: #fff; }
+    .reward-content { font-size: calc(14px * var(--scale)); color: #FFD700; }
     .reward-card.unlocked .reward-content { color: #fff; }
     @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
-    .final-score { font-size: 28px; margin-bottom: 20px; }
+    .final-score { 
+      font-size: calc(28px * var(--scale)); 
+      margin-bottom: calc(20px * var(--scale));
+      text-align: center;
+    }
     .restart-btn {
-      padding: 12px 24px; border: none; border-radius: 50px;
-      background: #2196F3; color: white; font-size: 16px; cursor: pointer;
-      margin: 5px;
+      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
+      border: none; 
+      border-radius: calc(50px * var(--scale));
+      background: #2196F3; 
+      color: white; 
+      font-size: calc(16px * var(--scale)); 
+      cursor: pointer;
+      margin: calc(5px * var(--scale));
     }
     .back-btn {
-      padding: 12px 24px; border: none; border-radius: 50px;
-      background: #666; color: white; font-size: 16px; cursor: pointer;
-      margin: 5px;
+      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
+      border: none; 
+      border-radius: calc(50px * var(--scale));
+      background: #666; 
+      color: white; 
+      font-size: calc(16px * var(--scale)); 
+      cursor: pointer;
+      margin: calc(5px * var(--scale));
     }
-    .star-row { display: flex; gap: 10px; margin: 5px 0; }
-    .star { font-size: 24px; color: #ccc; }
+    .star-row { 
+      display: flex; 
+      gap: calc(10px * var(--scale)); 
+      margin: calc(5px * var(--scale)) 0; 
+    }
+    .star { font-size: calc(24px * var(--scale)); color: #ccc; }
     .star.active { color: #FFEB3B; }
-    /* 障碍物样式：红底黄叉 */
+    /* 障碍物样式 */
     .obstacle {
       background-color: #E53935 !important;
-      display: flex; align-items: center; justify-content: center;
-      color: #FFD600; font-size: 12px; font-weight: bold;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      color: #FFD600; 
+      font-size: calc(12px * var(--scale)); 
+      font-weight: bold;
+    }
+
+    /* 竖屏小屏额外优化 */
+    @media (max-width: 500px) and (orientation: portrait) {
+      .level-grid {
+        gap: calc(8px * var(--scale));
+      }
+      .sign-list {
+        gap: calc(6px * var(--scale));
+      }
+      .reward-grid {
+        gap: calc(10px * var(--scale));
+      }
     }
   </style>
 </head>
 <body>
-<!-- 主页（已删除Level Select按钮，只留Start Game） -->
+<!-- 主页 -->
 <div id="mainMenu" class="screen">
   <h1 class="menu-title">Snake Game</h1>
   <div class="score-row">
@@ -227,7 +451,7 @@
     </div>
   </div>
   <div class="sign-list" id="signList"></div>
-  <div style="display: flex; gap: 10px;">
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
     <button class="menu-btn primary" id="doSignBtn">Check in Today</button>
     <button class="menu-btn" id="closeSignBtn">Close</button>
   </div>
@@ -240,7 +464,7 @@
   <button id="pause-btn">⏸</button>
 </div>
 <div id="game-board" class="hidden"></div>
-<div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause</div>
+<div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe</div>
 
 <script>
   // 全局元素获取
@@ -303,8 +527,8 @@
   let unlockedReward7 = localStorage.getItem('unlockedReward7') === 'true';
   let unlockedReward30 = localStorage.getItem('unlockedReward30') === 'true';
   let unlockedReward50 = localStorage.getItem('unlockedReward50') === 'true';
-  const DAILY_GOLD = 1000; // 每日签到金币
-  const today = new Date().toISOString().split('T')[0]; // 今日日期 YYYY-MM-DD
+  const DAILY_GOLD = 1000;
+  const today = new Date().toISOString().split('T')[0];
 
   let lang = 'en';
   let mode = null;
@@ -331,7 +555,7 @@
   const LEVEL4_PASS = 150;
   const TUTORIAL_PASS = 40;
 
-  // 第四关障碍物：全在角落，远离出生点
+  // 第四关障碍物
   const level4Obstacles = [
     {x:2, y:2}, {x:2, y:17},
     {x:17, y:2}, {x:17, y:17},
@@ -394,6 +618,42 @@
     }
   };
 
+  // ========== 核心适配函数 ==========
+  function autoFitScreen() {
+    const root = document.documentElement;
+    const baseWidth = 400; // 基准宽度
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // 计算最大可用宽度：竖屏取屏幕宽度的85%，横屏取屏幕高度的75%，保证棋盘是正方形不溢出
+    let maxAvailableWidth;
+    if (window.innerWidth < window.innerHeight) {
+      // 竖屏（手机）
+      maxAvailableWidth = Math.min(screenWidth * 0.85, screenHeight * 0.75);
+    } else {
+      // 横屏（电脑/iPad）
+      maxAvailableWidth = Math.min(screenWidth * 0.6, screenHeight * 0.8, baseWidth);
+    }
+
+    // 计算缩放比例，最小不低于0.5，保证最小屏幕也能看清
+    const scale = Math.max(maxAvailableWidth / baseWidth, 0.5);
+    
+    // 更新CSS变量，所有元素自动缩放
+    root.style.setProperty('--scale', scale);
+
+    // 游戏正在运行时，重新渲染棋盘，避免错位
+    if (isGameStarted && !isPaused) {
+      draw();
+    }
+  }
+
+  // 监听屏幕变化：页面加载、窗口大小改变、屏幕旋转，自动重新适配
+  window.addEventListener('load', autoFitScreen);
+  window.addEventListener('resize', autoFitScreen);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(autoFitScreen, 100); // 转屏后延迟100ms适配，保证获取到正确的尺寸
+  });
+
   // 金币更新函数
   function updateGoldCount() {
     goldCount.innerText = `💰 ${userGold}`;
@@ -402,21 +662,17 @@
 
   // 签到系统核心函数
   function initSignSystem() {
-    // 刷新签到界面
     renderSignList();
     updateSignProgress();
     updateRewardStatus();
-    // 今日是否已签到
     const isSignedToday = lastSignDate === today;
     doSignBtn.disabled = isSignedToday;
     doSignBtn.classList.toggle('checked', isSignedToday);
     doSignBtn.innerText = isSignedToday ? (lang === 'en' ? 'Checked' : '已签到') : langText[lang].checkInToday;
   }
 
-  // 渲染签到列表
   function renderSignList() {
     signList.innerHTML = '';
-    // 渲染最近7天的签到
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -434,35 +690,29 @@
     }
   }
 
-  // 更新签到进度
   function updateSignProgress() {
     const progress = Math.min((totalSignDays / 50) * 100, 100);
     progressFill.style.width = `${progress}%`;
     progressText.innerText = langText[lang].totalSign.replace('{num}', totalSignDays);
   }
 
-  // 更新累计奖励状态
   function updateRewardStatus() {
-    // 7天奖励
     if (totalSignDays >= 7 && !unlockedReward7) {
       unlockedReward7 = true;
       userGold += 5000;
       updateGoldCount();
       localStorage.setItem('unlockedReward7', 'true');
     }
-    // 30天奖励
     if (totalSignDays >= 30 && !unlockedReward30) {
       unlockedReward30 = true;
       userGold += 20000;
       updateGoldCount();
       localStorage.setItem('unlockedReward30', 'true');
     }
-    // 50天皮肤奖励
     if (totalSignDays >= 50 && !unlockedReward50) {
       unlockedReward50 = true;
       localStorage.setItem('unlockedReward50', 'true');
     }
-    // 更新UI
     reward7.classList.toggle('unlocked', unlockedReward7);
     reward30.classList.toggle('unlocked', unlockedReward30);
     reward50.classList.toggle('unlocked', unlockedReward50);
@@ -471,20 +721,15 @@
     reward50.querySelector('.reward-content').innerText = unlockedReward50 ? langText[lang].unlocked : langText[lang].reward50Content;
   }
 
-  // 执行签到
   function doSign() {
     if (lastSignDate === today) return;
-    // 加金币
     userGold += DAILY_GOLD;
     updateGoldCount();
-    // 更新签到数据
     totalSignDays += 1;
     lastSignDate = today;
     localStorage.setItem('totalSignDays', totalSignDays);
     localStorage.setItem('lastSignDate', lastSignDate);
-    // 刷新界面
     initSignSystem();
-    // 签到成功提示
     alert(lang === 'en' ? `Check in success! +${DAILY_GOLD} Coins` : `签到成功！获得 ${DAILY_GOLD} 金币`);
   }
 
@@ -493,7 +738,6 @@
     lang = newLang;
     btnEn.classList.toggle('active', lang === 'en');
     btnCn.classList.toggle('active', lang === 'cn');
-    // 全局文本更新
     startBtn.textContent = langText[lang].start;
     signBtn.textContent = langText[lang].signTitle;
     backFromMode.textContent = langText[lang].back;
@@ -505,14 +749,12 @@
     levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
     specialSelect.querySelector('h1').textContent = langText[lang].special;
     tips.textContent = langText[lang].tips;
-    // 签到界面文本
     document.querySelector('.sign-title').innerText = langText[lang].signTitle;
     document.getElementById('signDesc').innerText = langText[lang].signDesc;
     closeSignBtn.innerText = langText[lang].close;
     reward7.querySelector('.reward-day').innerText = langText[lang].reward7;
     reward30.querySelector('.reward-day').innerText = langText[lang].reward30;
     reward50.querySelector('.reward-day').innerText = langText[lang].reward50;
-    // 刷新签到界面
     initSignSystem();
     updateComingSoonText();
     updateScore();
@@ -638,7 +880,6 @@
     refreshLevelLock(); 
   };
 
-  // 签到按钮事件
   signBtn.onclick = () => {
     signModal.classList.remove('hidden');
     initSignSystem();
@@ -676,8 +917,8 @@
   function askSkipTutorial() {
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
-      <div style="font-size:28px; color:#fff; margin-bottom:20px;">${langText[lang].skipTutorial}</div>
-      <div style="display:flex; gap:10px;">
+      <div style="font-size:calc(28px * var(--scale)); color:#fff; margin-bottom:calc(20px * var(--scale)); text-align:center;">${langText[lang].skipTutorial}</div>
+      <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
         <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
         <button class="skip-btn" id="skip-no">${lang === 'en' ? 'No' : '否'}</button>
       </div>
@@ -693,8 +934,8 @@
   function chooseDevice() {
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
-      <div style="font-size:30px; margin-bottom:10px; color:#fff;">${langText[lang].chooseDevice}</div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <div style="font-size:calc(30px * var(--scale)); margin-bottom:calc(10px * var(--scale)); color:#fff; text-align:center;">${langText[lang].chooseDevice}</div>
+      <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
         <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
         <button class="device-btn" id="tb">${langText[lang].mobile}</button>
       </div>
@@ -729,14 +970,13 @@
     startGameLoop();
   }
 
-  // 游戏重置函数（S1三个阶段速度递进）
+  // 游戏重置函数
   function resetGame() {
     clearInterval(gameLoop); 
     gameBoard.classList.remove('tutorial'); 
     timerElement.innerText = '';
     if (isSpecialMode) {
       gridSize = 20;
-      // 阶段1最慢，阶段2中等，阶段3最快
       if (specialStage === 1) baseSpeed = 230;
       if (specialStage === 2) baseSpeed = 200;
       if (specialStage === 3) baseSpeed = 170;
@@ -753,9 +993,6 @@
       gridSize = 20; baseSpeed = 170;
     }
     speed = baseSpeed;
-    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
-    gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
-    // 蛇初始位置固定在中间，方向向右
     snake = [
       {x:Math.floor(gridSize/2),y:Math.floor(gridSize/2)},
       {x:Math.floor(gridSize/2)-1,y:Math.floor(gridSize/2)},
@@ -825,9 +1062,7 @@
       updateScore(); 
       food = spawnFood(); 
       ate = true;
-      // 特殊模式阶段检查
       if (isSpecialMode) checkSpecialScore();
-      // 第二关加速逻辑
       if (level === 2 && !isSpecialMode) { 
         speed = Math.max(85, speed - 8); 
         startGameLoop(); 
@@ -836,7 +1071,6 @@
       snake.pop(); 
     }
 
-    // 普通关卡逻辑
     if (!isSpecialMode) {
       if (level === 0 && score >= TUTORIAL_PASS) { 
         hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); 
@@ -872,7 +1106,6 @@
     gameBoard.innerHTML = ''; 
     const t = document.createElement('div'); 
     t.className = 'tutorial-text';
-    // 阶段提示
     if (isSpecialMode && specialStage === 1) {
       t.innerText = langText[lang].specialGoal1;
     } else if (isSpecialMode && specialStage === 2) {
@@ -903,17 +1136,17 @@
     // 绘制蛇
     snake.forEach((s,i)=>{
       const e=document.createElement('div');
-      e.style.gridColumnStart=s.x+1; 
-      e.style.gridRowStart=s.y+1;
-      e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';
+      e.style.gridColumnStart = s.x + 1;
+      e.style.gridRowStart = s.y + 1;
+      e.style.backgroundColor = i===0?'#4CAF50':'#8BC34A';
       gameBoard.appendChild(e);
     });
     // 绘制食物
     const f=document.createElement('div');
-    f.style.gridColumnStart=food.x+1; 
-    f.style.gridRowStart=food.y+1;
-    f.style.backgroundColor=food.color; 
-    f.style.border='1px solid #fff';
+    f.style.gridColumnStart = food.x + 1;
+    f.style.gridRowStart = food.y + 1;
+    f.style.backgroundColor = food.color;
+    f.style.border = '1px solid #fff';
     gameBoard.appendChild(f);
   }
 
@@ -921,7 +1154,6 @@
   function gameOver(){
     clearInterval(gameLoop);
     clearInterval(specialTimer);
-    // 特殊模式更新最高分
     if (isSpecialMode) {
       if (score > specialHighscore) {
         specialHighscore = score;
@@ -963,7 +1195,7 @@
     let btnHtml = '';
     if(r){
       btnHtml = `
-        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
           <button class="restart-btn">${langText[lang].playAgain}</button>
           <button class="back-btn">${langText[lang].backToMenu}</button>
         </div>
@@ -1021,9 +1253,9 @@
     const dx=e.changedTouches[0].clientX-touchStartX;
     const dy=e.changedTouches[0].clientY-touchStartY;
     if(Math.abs(dx)>Math.abs(dy)){
-      if(dx>20)direction={x:1,y:0};else if(dx<-20)direction={x:-1,y:0};
+      if(dx>20&&direction.x!==-1)direction={x:1,y:0};else if(dx<-20&&direction.x!==1)direction={x:-1,y:0};
     }else{
-      if(dy<-20)direction={x:0,y:-1};else if(dy>20)direction={x:0,y:1};
+      if(dy<-20&&direction.y!==1)direction={x:0,y:-1};else if(dy>20&&direction.y!==-1)direction={x:0,y:1};
     }
   });
 
