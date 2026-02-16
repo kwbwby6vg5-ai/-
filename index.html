@@ -16,6 +16,7 @@
       font-family: Arial, sans-serif;
       touch-action: none;
       min-height: 100vh;
+      padding: 10px 0;
     }
     .screen { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; }
     .hidden { display: none !important; }
@@ -28,6 +29,7 @@
     .mode-btn.levels { background: #4CAF50; }
     .mode-btn.special { background: #64B5F6; }
     .mode-btn.locked { background: #555; opacity: 0.6; cursor: default; }
+    .mode-btn.checked { background: #999; opacity: 0.7; cursor: default; }
     .level-grid {
       display: flex; gap: 12px; flex-wrap: nowrap;
       justify-content: center; margin: 10px 0 20px;
@@ -40,23 +42,26 @@
       cursor: pointer; text-align: center; line-height: 1.2;
     }
     .level-block.active { background: #4CAF50; border-color: #8BC34A; }
-    .level-block.tutorial { background: #2196F3; border-color: #03A9F4; }
-    .level-block.locked { background: #222; border-color: #333; color: #553; cursor: default; }
+    .level-block.tutorial { background: #2196F3; border-color: #03A9F3; }
+    .level-block.locked { background: #222; border-color: #333; color: #555; cursor: default; }
     .menu-btn {
       padding: 12px 24px; font-size: 18px; border-radius: 12px;
       border: none; background: #333; color: white; min-width: 180px;
-      cursor: pointer;
+      cursor: pointer; transition: all 0.2s;
     }
     .menu-btn.primary { background: #4CAF50; }
+    .menu-btn.warning { background: #FF9800; }
+    .menu-btn:active { transform: scale(0.98); }
     .lang-group { display: flex; gap: 10px; margin-top: 10px; }
     .lang-btn {
       padding: 8px 16px; border-radius: 8px; border: none;
       background: #555; color: white; font-size: 16px; cursor: pointer;
     }
     .lang-btn.active { background: #4CAF50; }
-    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
     #score { font-size: 24px; }
     #timer { font-size: 24px; color: #FFEB3B; margin-left: 10px; }
+    #goldCount { font-size: 24px; color: #FFD700; }
     #pause-btn {
       width: 48px; height: 48px; border-radius: 50%;
       background: #333; border: 2px solid #666;
@@ -70,7 +75,7 @@
     }
     #game-board.tutorial {
       background-image: linear-gradient(#333 1px, transparent 1px),
-                         linear-gradient(90deg #333 1px, transparent 1px);
+                         linear-gradient(90deg, #333 1px, transparent 1px);
       background-size: 20px 20px;
     }
     .tutorial-text {
@@ -81,8 +86,9 @@
     #tips { margin-top: 10px; color: #888; text-align: center; }
     .modal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+      background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
       align-items: center; justify-content: center; z-index: 999;
+      padding: 20px;
     }
     .device-btn, .skip-btn {
       font-size: 22px; padding: 14px 28px; margin: 10px;
@@ -93,6 +99,35 @@
     .victory-text { font-size: 50px; color: #FFEB3B; text-shadow: 0 0 15px #FFEB3B; margin-bottom: 20px; }
     .gameover-text { font-size: 50px; color: #F44336; text-shadow: 0 0 15px #F44336; margin-bottom: 20px; }
     .countdown { font-size: 80px; color: #4CAF50; font-weight: bold; animation: flash 0.6s infinite alternate; }
+    .stage-title { font-size: 36px; color: #FFEB3B; margin-bottom: 20px; font-weight: bold; }
+    .sign-title { font-size: 32px; color: #FFD700; margin-bottom: 20px; font-weight: bold; }
+    .sign-desc { font-size: 18px; color: #fff; margin-bottom: 20px; text-align: center; }
+    .sign-list { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 25px; max-width: 600px; width: 100%; }
+    .sign-item {
+      background: #333; border-radius: 8px; padding: 10px 5px;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      border: 2px solid #444;
+    }
+    .sign-item.checked { background: #4CAF50; border-color: #8BC34A; }
+    .sign-item.today { border-color: #FFD700; }
+    .sign-day { font-size: 14px; color: #aaa; }
+    .sign-item.checked .sign-day { color: #fff; }
+    .sign-reward { font-size: 16px; font-weight: bold; color: #FFD700; }
+    .sign-item.checked .sign-reward { color: #fff; }
+    .sign-progress { width: 100%; max-width: 600px; margin-bottom: 20px; }
+    .progress-bar { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); transition: width 0.3s; }
+    .progress-text { font-size: 16px; color: #fff; text-align: center; }
+    .reward-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; width: 100%; max-width: 600px; margin-bottom: 25px; }
+    .reward-card {
+      background: #333; border-radius: 12px; padding: 15px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      border: 2px solid #444; text-align: center;
+    }
+    .reward-card.unlocked { border-color: #4CAF50; background: #2E7D32; }
+    .reward-day { font-size: 16px; font-weight: bold; color: #fff; }
+    .reward-content { font-size: 14px; color: #FFD700; }
+    .reward-card.unlocked .reward-content { color: #fff; }
     @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
     .final-score { font-size: 28px; margin-bottom: 20px; }
     .restart-btn {
@@ -108,23 +143,38 @@
     .star-row { display: flex; gap: 10px; margin: 5px 0; }
     .star { font-size: 24px; color: #ccc; }
     .star.active { color: #FFEB3B; }
+    /* 障碍物样式：红底黄叉 */
+    .obstacle {
+      background-color: #E53935 !important;
+      display: flex; align-items: center; justify-content: center;
+      color: #FFD600; font-size: 12px; font-weight: bold;
+    }
   </style>
 </head>
 <body>
+<!-- 主页（已删除Level Select按钮，只留Start Game） -->
 <div id="mainMenu" class="screen">
   <h1 class="menu-title">Snake Game</h1>
-  <button class="menu-btn primary" id="startBtn">Start</button>
+  <div class="score-row">
+    <span id="goldCount">💰 0</span>
+  </div>
+  <button class="menu-btn primary" id="startBtn">Start Game</button>
+  <button class="menu-btn warning" id="signBtn">Daily Check-in</button>
   <div class="lang-group">
     <button class="lang-btn active" id="btn-en">English</button>
     <button class="lang-btn" id="btn-cn">中文</button>
   </div>
 </div>
+
+<!-- 模式选择页 -->
 <div id="modeSelect" class="screen hidden">
   <h1 class="menu-title">Select Mode</h1>
   <button class="mode-btn levels" id="modeLevels">Levels</button>
   <button class="mode-btn special locked" id="modeSpecial">Special</button>
   <button class="menu-btn" id="backFromMode">Back</button>
 </div>
+
+<!-- 关卡选择页 -->
 <div id="levelSelect" class="screen hidden">
   <h1 class="menu-title">Select Level</h1>
   <div class="level-grid" id="levelGrid">
@@ -132,11 +182,13 @@
     <div class="level-block locked" id="level-1">1</div>
     <div class="level-block locked" id="level-2">2</div>
     <div class="level-block locked" id="level-3">3</div>
-    <div class="level-block locked coming-soon"></div>
+    <div class="level-block locked" id="level-4">4</div>
     <div class="level-block locked coming-soon"></div>
   </div>
   <button class="menu-btn" id="backFromLevels">Back</button>
 </div>
+
+<!-- 特殊模式选择页 -->
 <div id="specialSelect" class="screen hidden">
   <h1 class="menu-title">Special</h1>
   <div class="level-grid" id="specialGrid">
@@ -149,6 +201,39 @@
   </div>
   <button class="menu-btn" id="backFromSpecial">Back</button>
 </div>
+
+<!-- 签到弹窗 -->
+<div id="signModal" class="modal hidden">
+  <h2 class="sign-title">Daily Check-in</h2>
+  <p class="sign-desc" id="signDesc">Check in every day to get gold coins!</p>
+  <div class="sign-progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <p class="progress-text" id="progressText">Total Check-in: 0 days</p>
+  </div>
+  <div class="reward-grid">
+    <div class="reward-card" id="reward7">
+      <div class="reward-day">7 Days</div>
+      <div class="reward-content">5000 Coins</div>
+    </div>
+    <div class="reward-card" id="reward30">
+      <div class="reward-day">30 Days</div>
+      <div class="reward-content">20000 Coins</div>
+    </div>
+    <div class="reward-card" id="reward50">
+      <div class="reward-day">50 Days</div>
+      <div class="reward-content">Limited Skin</div>
+    </div>
+  </div>
+  <div class="sign-list" id="signList"></div>
+  <div style="display: flex; gap: 10px;">
+    <button class="menu-btn primary" id="doSignBtn">Check in Today</button>
+    <button class="menu-btn" id="closeSignBtn">Close</button>
+  </div>
+</div>
+
+<!-- 游戏对局界面 -->
 <div class="score-row hidden" id="scoreRow">
   <div id="score">Score: 0</div>
   <div id="timer">Time: 0</div>
@@ -158,6 +243,7 @@
 <div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause</div>
 
 <script>
+  // 全局元素获取
   const gameBoard = document.getElementById('game-board');
   const scoreRow = document.getElementById('scoreRow');
   const scoreElement = document.getElementById('score');
@@ -180,12 +266,26 @@
   const level1 = document.getElementById('level-1');
   const level2 = document.getElementById('level-2');
   const level3 = document.getElementById('level-3');
+  const level4 = document.getElementById('level-4');
   const special1 = document.getElementById('special1');
   const comingSoonElements = document.querySelectorAll('.coming-soon');
+  const signBtn = document.getElementById('signBtn');
+  const signModal = document.getElementById('signModal');
+  const doSignBtn = document.getElementById('doSignBtn');
+  const closeSignBtn = document.getElementById('closeSignBtn');
+  const signList = document.getElementById('signList');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const goldCount = document.getElementById('goldCount');
+  const reward7 = document.getElementById('reward7');
+  const reward30 = document.getElementById('reward30');
+  const reward50 = document.getElementById('reward50');
 
+  // 游戏核心数据
   let hasDoneTutorial = localStorage.getItem('hasDoneTutorial') === 'true';
   let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
   let unlockedLevel3 = localStorage.getItem('unlockedLevel3') === 'true';
+  let unlockedLevel4 = localStorage.getItem('unlockedLevel4') === 'true';
   let savedLevel = parseInt(localStorage.getItem('savedLevel')) || 0;
   let isSpecialMode = false;
   let specialStage = 1;
@@ -195,6 +295,16 @@
   let specialHighscore = parseInt(localStorage.getItem('specialHighscore') || 0);
   let specialTimeLeft = 0;
   let specialTimer;
+
+  // 签到&金币核心数据
+  let userGold = parseInt(localStorage.getItem('userGold') || 0);
+  let totalSignDays = parseInt(localStorage.getItem('totalSignDays') || 0);
+  let lastSignDate = localStorage.getItem('lastSignDate') || '';
+  let unlockedReward7 = localStorage.getItem('unlockedReward7') === 'true';
+  let unlockedReward30 = localStorage.getItem('unlockedReward30') === 'true';
+  let unlockedReward50 = localStorage.getItem('unlockedReward50') === 'true';
+  const DAILY_GOLD = 1000; // 每日签到金币
+  const today = new Date().toISOString().split('T')[0]; // 今日日期 YYYY-MM-DD
 
   let lang = 'en';
   let mode = null;
@@ -209,6 +319,7 @@
   let isPaused = false;
   let touchStartX = 0, touchStartY = 0;
 
+  // 游戏常量
   const STAGE1_TIME = 40;
   const STAGE1_SCORE = 80;
   const STAGE2_TIME = 60;
@@ -217,69 +328,200 @@
   const LEVEL1_PASS = 150;
   const LEVEL2_PASS = 150;
   const LEVEL3_PASS = 150;
+  const LEVEL4_PASS = 150;
   const TUTORIAL_PASS = 40;
 
-  function updateComingSoonText() {
-    comingSoonElements.forEach(el => {
-      el.innerText = lang === 'en' ? 'Coming Soon' : '敬请期待';
-    });
-  }
+  // 第四关障碍物：全在角落，远离出生点
+  const level4Obstacles = [
+    {x:2, y:2}, {x:2, y:17},
+    {x:17, y:2}, {x:17, y:17},
+    {x:4, y:4}, {x:15, y:15}
+  ];
 
+  // 双语文本
   const langText = {
     cn: {
-      start:'开始',selectLevel:'选择关卡',back:'返回',tutorial:'教学关',
-      level1:'第一关',level2:'第二关',level3:'第三关',
-      chooseDevice:'选择设备',keyboard:'键盘',mobile:'手机',
+      start:'开始游戏',selectLevel:'选择关卡',back:'返回',tutorial:'教学关',
+      level1:'第一关',level2:'第二关',level3:'第三关',level4:'第四关',
+      chooseDevice:'选择操作方式',keyboard:'键盘',mobile:'触屏',
       keyboardGuide:'使用 ↑ ↓ ← → 移动',mobileGuide:'滑动屏幕移动',
-      ok:'确定',goal:'目标：吃掉食物',notice:'注意：碰墙/碰自己即死',
+      ok:'确定',goal:'目标：吃掉食物',notice:'注意：碰墙/碰自己即失败',
       speedNotice:'注意：吃到食物后速度会加快',
-      specialGoal1:'目标：短时间内尽可能吃掉更多食物\n达标：80 分',
-      specialGoal2:'目标：短时间内尽可能吃掉更多食物\n达标：140 分',
+      obstacleNotice:'注意：红色障碍物不可触碰！',
+      specialGoal1:'阶段1：短时间内尽可能吃更多食物\n达标：80 分',
+      specialGoal2:'阶段2：短时间内尽可能吃更多食物\n达标：140 分',
+      specialGoal3:'最终阶段：全力冲刺最高分！',
+      stageStart:'即将进入 阶段',
       tabletNotice:'平板用户可在游玩中随意切换操作方式',
       skipTutorial:'是否跳过教学关？',gameOver:'游戏结束',
       tutorialComplete:'教学完成！',victory:'恭喜过关！',finalWin:'你赢了！',
-      perfect:'完美！',score:'分数',nextLevel:'即将进入下一关',playAgain:'重新开始',
+      perfect:'完美通关！',score:'分数',nextLevel:'即将进入下一关',playAgain:'重新开始',
       backToMenu:'回到主页',
       tips:'电脑: ↑↓←→ 移动 | 空格暂停 | 手机: 滑动移动 | 点圆圈暂停',
       selectMode:'选择模式',levels:'普通关卡',special:'特殊玩法',
-      special1:'特殊1',time:'时间',stage:'阶段',target:'目标'
+      special1:'特殊1',time:'时间',stage:'阶段',target:'目标',
+      signTitle:'每日签到',signDesc:'每日签到领取金币，累计天数解锁限定奖励！',
+      checkInToday:'今日签到',close:'关闭',totalSign:'累计签到：{num} 天',
+      day:'第{num}天',reward7:'7天',reward30:'30天',reward50:'50天',
+      reward7Content:'5000金币',reward30Content:'20000金币',reward50Content:'限定皮肤',
+      checked:'已签到',today:'今日',unlocked:'已解锁'
     },
     en: {
-      start:'Start',selectLevel:'Select Level',back:'Back',tutorial:'Tutorial',
-      level1:'Level 1',level2:'Level 2',level3:'Level 3',
-      chooseDevice:'Choose Device',keyboard:'Keyboard',mobile:'Mobile',
+      start:'Start Game',selectLevel:'Select Level',back:'Back',tutorial:'Tutorial',
+      level1:'Level 1',level2:'Level 2',level3:'Level 3',level4:'Level 4',
+      chooseDevice:'Choose Control',keyboard:'Keyboard',mobile:'Touch',
       keyboardGuide:'Use ↑ ↓ ← → to move',mobileGuide:'Swipe to move',
       ok:'OK',goal:'Goal: Eat food',notice:'Notice: Die if hit wall/self',
       speedNotice:'Notice: Speed increases when eating food',
-      specialGoal1:'Goal: Eat as much food as possible quickly\nTarget: 80',
-      specialGoal2:'Goal: Eat as much food as possible quickly\nTarget: 140',
-      tabletNotice:'Tablet users can switch control mode anytime while playing',
+      obstacleNotice:'Notice: Avoid red obstacles!',
+      specialGoal1:'Stage 1: Eat as much as possible quickly\nTarget: 80',
+      specialGoal2:'Stage 2: Eat as much as possible quickly\nTarget: 140',
+      specialGoal3:'Final Stage: Get the highest score!',
+      stageStart:'Entering Stage',
+      tabletNotice:'Tablet users can switch control anytime',
       skipTutorial:'Skip tutorial?',gameOver:'Game Over',
       tutorialComplete:'Tutorial Complete!',victory:'Victory!',finalWin:'You Win!',
       perfect:'Perfect!',score:'Score',nextLevel:'Next Level Soon',playAgain:'Play Again',
       backToMenu:'Back to Menu',
       tips:'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
       selectMode:'Select Mode',levels:'Levels',special:'Special',
-      special1:'Special 1',time:'Time',stage:'Stage',target:'Target'
+      special1:'Special 1',time:'Time',stage:'Stage',target:'Target',
+      signTitle:'Daily Check-in',signDesc:'Check in daily for gold, unlock rewards with total days!',
+      checkInToday:'Check in Today',close:'Close',totalSign:'Total Check-in: {num} days',
+      day:'Day {num}',reward7:'7 Days',reward30:'30 Days',reward50:'50 Days',
+      reward7Content:'5000 Coins',reward30Content:'20000 Coins',reward50Content:'Limited Skin',
+      checked:'Checked',today:'Today',unlocked:'Unlocked'
     }
   };
 
+  // 金币更新函数
+  function updateGoldCount() {
+    goldCount.innerText = `💰 ${userGold}`;
+    localStorage.setItem('userGold', userGold);
+  }
+
+  // 签到系统核心函数
+  function initSignSystem() {
+    // 刷新签到界面
+    renderSignList();
+    updateSignProgress();
+    updateRewardStatus();
+    // 今日是否已签到
+    const isSignedToday = lastSignDate === today;
+    doSignBtn.disabled = isSignedToday;
+    doSignBtn.classList.toggle('checked', isSignedToday);
+    doSignBtn.innerText = isSignedToday ? (lang === 'en' ? 'Checked' : '已签到') : langText[lang].checkInToday;
+  }
+
+  // 渲染签到列表
+  function renderSignList() {
+    signList.innerHTML = '';
+    // 渲染最近7天的签到
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      const dateStr = date.toISOString().split('T')[0];
+      const isToday = dateStr === today;
+      const isChecked = lastSignDate >= dateStr && totalSignDays > (6 - i);
+
+      const item = document.createElement('div');
+      item.className = `sign-item ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''}`;
+      item.innerHTML = `
+        <div class="sign-day">${isToday ? langText[lang].today : langText[lang].day.replace('{num}', i+1)}</div>
+        <div class="sign-reward">${DAILY_GOLD}</div>
+      `;
+      signList.appendChild(item);
+    }
+  }
+
+  // 更新签到进度
+  function updateSignProgress() {
+    const progress = Math.min((totalSignDays / 50) * 100, 100);
+    progressFill.style.width = `${progress}%`;
+    progressText.innerText = langText[lang].totalSign.replace('{num}', totalSignDays);
+  }
+
+  // 更新累计奖励状态
+  function updateRewardStatus() {
+    // 7天奖励
+    if (totalSignDays >= 7 && !unlockedReward7) {
+      unlockedReward7 = true;
+      userGold += 5000;
+      updateGoldCount();
+      localStorage.setItem('unlockedReward7', 'true');
+    }
+    // 30天奖励
+    if (totalSignDays >= 30 && !unlockedReward30) {
+      unlockedReward30 = true;
+      userGold += 20000;
+      updateGoldCount();
+      localStorage.setItem('unlockedReward30', 'true');
+    }
+    // 50天皮肤奖励
+    if (totalSignDays >= 50 && !unlockedReward50) {
+      unlockedReward50 = true;
+      localStorage.setItem('unlockedReward50', 'true');
+    }
+    // 更新UI
+    reward7.classList.toggle('unlocked', unlockedReward7);
+    reward30.classList.toggle('unlocked', unlockedReward30);
+    reward50.classList.toggle('unlocked', unlockedReward50);
+    reward7.querySelector('.reward-content').innerText = unlockedReward7 ? langText[lang].unlocked : langText[lang].reward7Content;
+    reward30.querySelector('.reward-content').innerText = unlockedReward30 ? langText[lang].unlocked : langText[lang].reward30Content;
+    reward50.querySelector('.reward-content').innerText = unlockedReward50 ? langText[lang].unlocked : langText[lang].reward50Content;
+  }
+
+  // 执行签到
+  function doSign() {
+    if (lastSignDate === today) return;
+    // 加金币
+    userGold += DAILY_GOLD;
+    updateGoldCount();
+    // 更新签到数据
+    totalSignDays += 1;
+    lastSignDate = today;
+    localStorage.setItem('totalSignDays', totalSignDays);
+    localStorage.setItem('lastSignDate', lastSignDate);
+    // 刷新界面
+    initSignSystem();
+    // 签到成功提示
+    alert(lang === 'en' ? `Check in success! +${DAILY_GOLD} Coins` : `签到成功！获得 ${DAILY_GOLD} 金币`);
+  }
+
+  // 语言设置函数
   function setLang(newLang) {
     lang = newLang;
     btnEn.classList.toggle('active', lang === 'en');
     btnCn.classList.toggle('active', lang === 'cn');
+    // 全局文本更新
     startBtn.textContent = langText[lang].start;
+    signBtn.textContent = langText[lang].signTitle;
     backFromMode.textContent = langText[lang].back;
     backFromLevels.textContent = langText[lang].back;
     backFromSpecial.textContent = langText[lang].back;
-    modeSelect.querySelector('h1').textContent = langText[lang].selectMode;
     modeLevels.textContent = langText[lang].levels;
     modeSpecial.textContent = langText[lang].special;
+    modeSelect.querySelector('h1').textContent = langText[lang].selectMode;
     levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
     specialSelect.querySelector('h1').textContent = langText[lang].special;
     tips.textContent = langText[lang].tips;
+    // 签到界面文本
+    document.querySelector('.sign-title').innerText = langText[lang].signTitle;
+    document.getElementById('signDesc').innerText = langText[lang].signDesc;
+    closeSignBtn.innerText = langText[lang].close;
+    reward7.querySelector('.reward-day').innerText = langText[lang].reward7;
+    reward30.querySelector('.reward-day').innerText = langText[lang].reward30;
+    reward50.querySelector('.reward-day').innerText = langText[lang].reward50;
+    // 刷新签到界面
+    initSignSystem();
     updateComingSoonText();
     updateScore();
+  }
+
+  function updateComingSoonText() {
+    comingSoonElements.forEach(el => {
+      el.innerText = lang === 'en' ? 'Coming Soon' : '敬请期待';
+    });
   }
 
   function saveSpecialProgress() {
@@ -298,9 +540,11 @@
     startSpecialTimer();
   }
 
+  // 特殊模式启动
   function startSpecial1() {
     isSpecialMode = true;
     specialStage = 1;
+    level = 0;
     mainMenu.classList.add('hidden');
     modeSelect.classList.add('hidden');
     specialSelect.classList.add('hidden');
@@ -312,48 +556,98 @@
     pauseBtn.innerHTML = '⏸';
     pauseBtn.style.background = '#F44336';
     score = 0;
+    clearInterval(gameLoop);
+    clearInterval(specialTimer);
     resetGame();
     startGameLoop();
     startSpecialTimer();
   }
 
+  // 特殊模式定时器
   function startSpecialTimer() {
     clearInterval(specialTimer);
     if (specialStage === 1) specialTimeLeft = STAGE1_TIME;
     if (specialStage === 2) specialTimeLeft = STAGE2_TIME;
     if (specialStage === 3) specialTimeLeft = STAGE3_TIME;
+    timerElement.innerText = `${langText[lang].time}: ${specialTimeLeft}`;
     specialTimer = setInterval(() => {
       if (isPaused || !isGameStarted) return;
       specialTimeLeft--;
       timerElement.innerText = `${langText[lang].time}: ${specialTimeLeft}`;
-      if (specialTimeLeft <= 0) { clearInterval(specialTimer); gameOver(); }
+      if (specialTimeLeft <= 0) { 
+        clearInterval(specialTimer); 
+        gameOver(); 
+      }
     }, 1000);
   }
 
+  // 特殊模式阶段检查
   function checkSpecialScore() {
     if (specialStage === 1 && score >= STAGE1_SCORE) {
-      specialStar1 = true; specialStage = 2; saveSpecialProgress(); countdownToNewStage();
+      specialStar1 = true; 
+      specialStage = 2;
+      saveSpecialProgress(); 
+      countdownToNewStage();
     } else if (specialStage === 2 && score >= STAGE2_SCORE) {
-      specialStar2 = true; specialUnlockStage3 = true; specialStage = 3; saveSpecialProgress(); countdownToNewStage();
+      specialStar2 = true; 
+      specialUnlockStage3 = true; 
+      specialStage = 3;
+      saveSpecialProgress(); 
+      countdownToNewStage();
     }
   }
 
+  // 阶段切换倒计时
   function countdownToNewStage() {
-    clearInterval(gameLoop); clearInterval(specialTimer);
-    const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = `<div class="countdown" id="cd">3</div>`; document.body.appendChild(m);
+    clearInterval(gameLoop); 
+    clearInterval(specialTimer);
+    isPaused = true;
+
+    const m = document.createElement('div'); 
+    m.className = 'modal';
+    m.innerHTML = `
+      <div class="stage-title">${langText[lang].stageStart} ${specialStage}</div>
+      <div class="countdown" id="cd">3</div>
+    `; 
+    document.body.appendChild(m);
+
     let n = 3;
+    const cdElement = document.getElementById('cd');
     const cdInterval = setInterval(() => {
       n--;
       if (n <= 0) {
-        clearInterval(cdInterval); document.body.removeChild(m);
+        clearInterval(cdInterval); 
+        document.body.removeChild(m);
         score = 0;
-        resetGame(); startSpecialTimer(); startGameLoop();
-      } else { document.getElementById('cd').innerText = n; }
+        isPaused = false;
+        resetGame(); 
+        updateScore();
+        startSpecialTimer(); 
+        startGameLoop();
+      } else { 
+        cdElement.innerText = n; 
+      }
     }, 800);
   }
 
-  startBtn.onclick = () => { mainMenu.classList.add('hidden'); modeSelect.classList.remove('hidden'); updateComingSoonText(); refreshLevelLock(); };
+  // 页面按钮事件绑定
+  startBtn.onclick = () => { 
+    mainMenu.classList.add('hidden'); 
+    modeSelect.classList.remove('hidden'); 
+    updateComingSoonText(); 
+    refreshLevelLock(); 
+  };
+
+  // 签到按钮事件
+  signBtn.onclick = () => {
+    signModal.classList.remove('hidden');
+    initSignSystem();
+  };
+  closeSignBtn.onclick = () => {
+    signModal.classList.add('hidden');
+  };
+  doSignBtn.onclick = doSign;
+
   backFromMode.onclick = () => { modeSelect.classList.add('hidden'); mainMenu.classList.remove('hidden'); };
   modeLevels.onclick = () => { modeSelect.classList.add('hidden'); levelSelect.classList.remove('hidden'); refreshLevelLock(); };
   modeSpecial.onclick = () => {
@@ -367,6 +661,7 @@
   level1.onclick = () => { if (hasDoneTutorial) selectLevel(1); };
   level2.onclick = () => { if (unlockedLevel2) selectLevel(2); };
   level3.onclick = () => { if (unlockedLevel3) selectLevel(3); };
+  level4.onclick = () => { if (unlockedLevel4) selectLevel(4); };
   special1.onclick = startSpecial1;
 
   function selectLevel(lv) {
@@ -382,8 +677,10 @@
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
       <div style="font-size:28px; color:#fff; margin-bottom:20px;">${langText[lang].skipTutorial}</div>
-      <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
-      <button class="skip-btn" id="skip-no">${lang === 'en' ? 'No' : '否'}</button>
+      <div style="display:flex; gap:10px;">
+        <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
+        <button class="skip-btn" id="skip-no">${lang === 'en' ? 'No' : '否'}</button>
+      </div>
     `;
     document.body.appendChild(m);
     m.querySelector('#skip-yes').onclick = () => {
@@ -397,8 +694,10 @@
     const m = document.createElement('div'); m.className = 'modal';
     m.innerHTML = `
       <div style="font-size:30px; margin-bottom:10px; color:#fff;">${langText[lang].chooseDevice}</div>
-      <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
-      <button class="device-btn" id="tb">${langText[lang].mobile}</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
+        <button class="device-btn" id="tb">${langText[lang].mobile}</button>
+      </div>
       <div class="notice">${langText[lang].tabletNotice}</div>
     `;
     document.body.appendChild(m);
@@ -425,22 +724,38 @@
     isGameStarted = true; isPaused = false;
     pauseBtn.innerHTML = '⏸'; pauseBtn.style.background = '#F44336';
     score = 0;
+    clearInterval(gameLoop);
     resetGame();
     startGameLoop();
   }
 
+  // 游戏重置函数（S1三个阶段速度递进）
   function resetGame() {
-    clearInterval(gameLoop); gameBoard.classList.remove('tutorial'); timerElement.innerText = '';
+    clearInterval(gameLoop); 
+    gameBoard.classList.remove('tutorial'); 
+    timerElement.innerText = '';
     if (isSpecialMode) {
-      gridSize = 20; baseSpeed = 220;
+      gridSize = 20;
+      // 阶段1最慢，阶段2中等，阶段3最快
+      if (specialStage === 1) baseSpeed = 230;
+      if (specialStage === 2) baseSpeed = 200;
+      if (specialStage === 3) baseSpeed = 170;
       if (specialStage === 1) gameBoard.classList.add('tutorial');
-    } else if (level === 0) { gridSize = 20; baseSpeed = 280; gameBoard.classList.add('tutorial');
-    } else if (level === 1) { gridSize = 20; baseSpeed = 180;
-    } else if (level === 2) { gridSize = 20; baseSpeed = 190;
-    } else if (level === 3) { gridSize = 23; baseSpeed = 160; }
+    } else if (level === 0) { 
+      gridSize = 20; baseSpeed = 280; gameBoard.classList.add('tutorial');
+    } else if (level === 1) { 
+      gridSize = 20; baseSpeed = 180;
+    } else if (level === 2) { 
+      gridSize = 20; baseSpeed = 190;
+    } else if (level === 3) { 
+      gridSize = 20; baseSpeed = 220;
+    } else if (level === 4) { 
+      gridSize = 20; baseSpeed = 170;
+    }
     speed = baseSpeed;
     gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 20px)`;
     gameBoard.style.gridTemplateRows = `repeat(${gridSize}, 20px)`;
+    // 蛇初始位置固定在中间，方向向右
     snake = [
       {x:Math.floor(gridSize/2),y:Math.floor(gridSize/2)},
       {x:Math.floor(gridSize/2)-1,y:Math.floor(gridSize/2)},
@@ -456,9 +771,9 @@
     if (isSpecialMode) {
       scoreElement.innerText = `${langText[lang].special1} ${langText[lang].stage}:${specialStage} | ${langText[lang].score}: ${score}`;
     } else {
-      let label = [langText[lang].tutorial, langText[lang].level1, langText[lang].level2, langText[lang].level3][level];
+      let label = [langText[lang].tutorial, langText[lang].level1, langText[lang].level2, langText[lang].level3, langText[lang].level4][level];
       let targetTxt = lang === 'en' ? 'Target' : '目标';
-      let target = [0, LEVEL1_PASS, LEVEL2_PASS, LEVEL3_PASS][level];
+      let target = [0, LEVEL1_PASS, LEVEL2_PASS, LEVEL3_PASS, LEVEL4_PASS][level];
       let targetStr = level > 0 ? ` | ${targetTxt}: ${target}` : '';
       scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}${targetStr}`;
     }
@@ -469,8 +784,14 @@
   }
 
   function spawnFood(){
-    let f; do{ f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
-    }while(snake.some(s=>s.x===f.x&&s.y===f.y)); return f;
+    let f;
+    do{
+      f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
+    } while (
+      snake.some(s=>s.x===f.x&&s.y===f.y)
+      || (level===4 && !isSpecialMode && level4Obstacles.some(o=>o.x===f.x&&o.y===f.y))
+    );
+    return f;
   }
 
   function moveFoodSmart(){
@@ -482,61 +803,129 @@
     if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){ food.x=nx;food.y=ny; }
   }
 
+  // 游戏主循环
   function update() {
     if (isPaused || !isGameStarted) return;
     const h = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
-    if (h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)) { gameOver(); return; }
+
+    // 碰撞检测
+    if (
+      h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize
+      || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)
+      || (level===4 && !isSpecialMode && level4Obstacles.some(o=>o.x===h.x&&o.y===h.y))
+    ) {
+      gameOver();
+      return;
+    }
+
     snake.unshift(h);
     let ate = false;
     if (h.x === food.x && h.y === food.y) {
-      score += 10; updateScore(); food = spawnFood(); ate = true;
+      score += 10; 
+      updateScore(); 
+      food = spawnFood(); 
+      ate = true;
+      // 特殊模式阶段检查
       if (isSpecialMode) checkSpecialScore();
-      if (level === 2 && !isSpecialMode) { speed = Math.max(85, speed - 8); startGameLoop(); }
-    } else { snake.pop(); }
+      // 第二关加速逻辑
+      if (level === 2 && !isSpecialMode) { 
+        speed = Math.max(85, speed - 8); 
+        startGameLoop(); 
+      }
+    } else { 
+      snake.pop(); 
+    }
+
+    // 普通关卡逻辑
     if (!isSpecialMode) {
-      if (level === 0 && score >= TUTORIAL_PASS) { hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); tutorialComplete(); return; }
-      if (level === 1 && score >= LEVEL1_PASS) { unlockedLevel2 = true; localStorage.setItem('unlockedLevel2','true'); victory(); return; }
-      if (level === 2 && score >= LEVEL2_PASS) { unlockedLevel3 = true; localStorage.setItem('unlockedLevel3','true'); victory(); return; }
-      if (level === 3 && score >= LEVEL3_PASS) { finalWin(); return; }
+      if (level === 0 && score >= TUTORIAL_PASS) { 
+        hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); 
+        tutorialComplete(); 
+        return; 
+      }
+      if (level === 1 && score >= LEVEL1_PASS) { 
+        unlockedLevel2 = true; localStorage.setItem('unlockedLevel2','true'); 
+        victory(); 
+        return; 
+      }
+      if (level === 2 && score >= LEVEL2_PASS) { 
+        unlockedLevel3 = true; localStorage.setItem('unlockedLevel3','true'); 
+        victory(); 
+        return; 
+      }
+      if (level === 3 && score >= LEVEL3_PASS) { 
+        unlockedLevel4 = true; localStorage.setItem('unlockedLevel4','true'); 
+        victory(); 
+        return; 
+      }
+      if (level === 4 && score >= LEVEL4_PASS) { 
+        finalWin(); 
+        return; 
+      }
       if (level === 3 && !ate) setTimeout(moveFoodSmart, 300);
     }
     draw();
   }
 
+  // 游戏渲染
   function draw() {
-    gameBoard.innerHTML = ''; const t = document.createElement('div'); t.className = 'tutorial-text';
+    gameBoard.innerHTML = ''; 
+    const t = document.createElement('div'); 
+    t.className = 'tutorial-text';
+    // 阶段提示
     if (isSpecialMode && specialStage === 1) {
       t.innerText = langText[lang].specialGoal1;
     } else if (isSpecialMode && specialStage === 2) {
       t.innerHTML = langText[lang].specialGoal2.replace('140', '<span style="color:#f44336;">140</span>');
+    } else if (isSpecialMode && specialStage === 3) {
+      t.innerText = langText[lang].specialGoal3;
     } else if (!isSpecialMode && level === 0) {
       t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
     } else if (!isSpecialMode && level === 2) {
       t.innerText = langText[lang].speedNotice;
+    } else if (!isSpecialMode && level === 4) {
+      t.innerText = langText[lang].obstacleNotice;
     }
     if (t.innerText || t.innerHTML) gameBoard.appendChild(t);
+
+    // 绘制第四关障碍物
+    if (level === 4 && !isSpecialMode) {
+      level4Obstacles.forEach(obs => {
+        const o = document.createElement('div');
+        o.style.gridColumnStart = obs.x + 1;
+        o.style.gridRowStart = obs.y + 1;
+        o.className = 'obstacle';
+        o.innerText = '❌';
+        gameBoard.appendChild(o);
+      });
+    }
+
+    // 绘制蛇
     snake.forEach((s,i)=>{
       const e=document.createElement('div');
-      e.style.gridColumnStart=s.x+1; e.style.gridRowStart=s.y+1;
+      e.style.gridColumnStart=s.x+1; 
+      e.style.gridRowStart=s.y+1;
       e.style.backgroundColor=i===0?'#4CAF50':'#8BC34A';
       gameBoard.appendChild(e);
     });
+    // 绘制食物
     const f=document.createElement('div');
-    f.style.gridColumnStart=food.x+1; f.style.gridRowStart=food.y+1;
-    f.style.backgroundColor=food.color; f.style.border='1px solid #fff';
+    f.style.gridColumnStart=food.x+1; 
+    f.style.gridRowStart=food.y+1;
+    f.style.backgroundColor=food.color; 
+    f.style.border='1px solid #fff';
     gameBoard.appendChild(f);
   }
 
-  // ========== 最高分逻辑（你原版完美保留） ==========
+  // 游戏结束&胜利函数
   function gameOver(){
     clearInterval(gameLoop);
     clearInterval(specialTimer);
-
-    // 只有S1模式，才更新最高分
+    // 特殊模式更新最高分
     if (isSpecialMode) {
       if (score > specialHighscore) {
         specialHighscore = score;
-        saveSpecialProgress(); // 保存到本地
+        saveSpecialProgress();
       }
     }
     showModal(langText[lang].gameOver, `${langText[lang].score}: ${score}`, false, true);
@@ -546,7 +935,6 @@
   function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
   function finalWin(){clearInterval(gameLoop);showModal(langText[lang].finalWin,langText[lang].perfect,false,true);}
 
-  // ========== 新增：回到主页逻辑 + 双按钮 ==========
   function backToMainMenu() {
     isGameStarted = false;
     isPaused = false;
@@ -563,8 +951,6 @@
   function showModal(title,sub,g,r){
     const m=document.createElement('div');m.className='modal';
     const tc=title===langText[lang].gameOver?'gameover-text':'victory-text';
-
-    // 实时显示最新最高分
     let extra = '';
     if (isSpecialMode) {
       extra = `
@@ -574,39 +960,37 @@
         <span class="star">${specialHighscore}</span>
       </div>`;
     }
-
-    // 双按钮：重新开始 + 回到主页
     let btnHtml = '';
     if(r){
       btnHtml = `
-        <button class="restart-btn">${langText[lang].playAgain}</button>
-        <button class="back-btn">${langText[lang].backToMenu}</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+          <button class="restart-btn">${langText[lang].playAgain}</button>
+          <button class="back-btn">${langText[lang].backToMenu}</button>
+        </div>
       `;
     }
-
     m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${extra}${btnHtml}`;
     document.body.appendChild(m);
-
     if(r){
-      // 重新开始
       m.querySelector('.restart-btn').onclick=()=>{
-        document.body.removeChild(m); isPaused=false; pauseBtn.innerHTML='⏸'; pauseBtn.style.background='#F44336';
-        if (isSpecialMode) {
-          restartCurrentSpecialStage();
-        } else {
-          score = 0; resetGame(); startGameLoop();
+        document.body.removeChild(m); 
+        isPaused=false; 
+        pauseBtn.innerHTML='⏸'; 
+        pauseBtn.style.background='#F44336';
+        if (isSpecialMode) { 
+          restartCurrentSpecialStage(); 
+        } else { 
+          score = 0; 
+          resetGame(); 
+          startGameLoop(); 
         }
       };
-      // 回到主页
-      m.querySelector('.back-btn').onclick=()=>{
-        document.body.removeChild(m);
-        backToMainMenu();
+      m.querySelector('.back-btn').onclick=()=>{ 
+        document.body.removeChild(m); 
+        backToMainMenu(); 
       };
     }
-
-    if(g){
-      setTimeout(()=>{ document.body.removeChild(m); startCountdown(); },1300);
-    }
+    if(g){ setTimeout(()=>{ document.body.removeChild(m); startCountdown(); },1300); }
   }
 
   function startCountdown(){
@@ -614,10 +998,12 @@
     const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);score=0;resetGame();startGameLoop();}else{cd.innerText=n;}},800);
   }
 
+  // 暂停功能
   function togglePause(){ if(!isGameStarted)return; isPaused=!isPaused; pauseBtn.innerHTML=isPaused?'▶':'⏸'; pauseBtn.style.background=isPaused?'#4CAF50':'#F44336'; }
   pauseBtn.onclick=togglePause;
   function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
 
+  // 键盘控制
   document.addEventListener('keydown',e=>{
     if(e.keyCode===32){togglePause();e.preventDefault();}
     if(isPaused||!isGameStarted)return;
@@ -628,6 +1014,7 @@
     if(k===D&&direction.y!==-1)direction={x:0,y:1};
   });
 
+  // 触摸控制
   document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
   document.addEventListener('touchend',e=>{
     if(!isGameStarted||isPaused)return;
@@ -640,9 +1027,7 @@
     }
   });
 
-  btnEn.onclick = () => setLang('en');
-  btnCn.onclick = () => setLang('cn');
-
+  // 关卡解锁逻辑
   function refreshLevelLock() {
     level1.classList.toggle('locked', !hasDoneTutorial);
     level1.classList.toggle('active', hasDoneTutorial);
@@ -650,12 +1035,18 @@
     level2.classList.toggle('active', unlockedLevel2);
     level3.classList.toggle('locked', !unlockedLevel3);
     level3.classList.toggle('active', unlockedLevel3);
+    level4.classList.toggle('locked', !unlockedLevel4);
+    level4.classList.toggle('active', unlockedLevel4);
     modeSpecial.classList.toggle('locked', !unlockedLevel3);
   }
 
+  // 页面初始化
+  btnEn.onclick = () => setLang('en');
+  btnCn.onclick = () => setLang('cn');
   setLang(lang);
   refreshLevelLock();
   updateComingSoonText();
+  updateGoldCount();
 </script>
 </body>
 </html>
