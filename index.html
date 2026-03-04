@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Snake Game</title>
   <style>
-    /* 核心适配变量：所有尺寸基于此变量等比例缩放 */
     :root {
-      --base-width: 400px; /* 基准棋盘宽度（电脑/iPad标准尺寸） */
-      --scale: 1; /* 缩放比例，JS自动计算 */
-      --cell-size: calc(20px * var(--scale)); /* 每个格子的大小 */
-      --safe-top: env(safe-area-inset-top); /* 刘海屏顶部安全距离 */
-      --safe-bottom: env(safe-area-inset-bottom); /* 底部安全距离 */
+      --base-width: 400px;
+      --scale: 1;
+      --cell-size: calc(20px * var(--scale));
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -277,6 +276,7 @@
     .sign-item.today { border-color: #FFD700; }
     .sign-day { font-size: calc(14px * var(--scale)); color: #aaa; }
     .sign-item.checked .sign-day { color: #fff; }
+    .sign-item.today .sign-day { color: #FFD700; font-weight: bold; }
     .sign-reward { font-size: calc(16px * var(--scale)); font-weight: bold; color: #FFD700; }
     .sign-item.checked .sign-reward { color: #fff; }
     .sign-progress { 
@@ -350,7 +350,6 @@
     }
     .star { font-size: calc(24px * var(--scale)); color: #ccc; }
     .star.active { color: #FFEB3B; }
-    /* 障碍物样式 */
     .obstacle {
       background-color: #E53935 !important;
       display: flex; 
@@ -361,22 +360,14 @@
       font-weight: bold;
     }
 
-    /* 竖屏小屏额外优化 */
     @media (max-width: 500px) and (orientation: portrait) {
-      .level-grid {
-        gap: calc(8px * var(--scale));
-      }
-      .sign-list {
-        gap: calc(6px * var(--scale));
-      }
-      .reward-grid {
-        gap: calc(10px * var(--scale));
-      }
+      .level-grid { gap: calc(8px * var(--scale)); }
+      .sign-list { gap: calc(6px * var(--scale)); }
+      .reward-grid { gap: calc(10px * var(--scale)); }
     }
   </style>
 </head>
 <body>
-<!-- 主页 -->
 <div id="mainMenu" class="screen">
   <h1 class="menu-title">Snake Game</h1>
   <div class="score-row">
@@ -390,7 +381,6 @@
   </div>
 </div>
 
-<!-- 模式选择页 -->
 <div id="modeSelect" class="screen hidden">
   <h1 class="menu-title">Select Mode</h1>
   <button class="mode-btn levels" id="modeLevels">Levels</button>
@@ -398,7 +388,6 @@
   <button class="menu-btn" id="backFromMode">Back</button>
 </div>
 
-<!-- 关卡选择页 -->
 <div id="levelSelect" class="screen hidden">
   <h1 class="menu-title">Select Level</h1>
   <div class="level-grid" id="levelGrid">
@@ -412,12 +401,11 @@
   <button class="menu-btn" id="backFromLevels">Back</button>
 </div>
 
-<!-- 特殊模式选择页 -->
 <div id="specialSelect" class="screen hidden">
   <h1 class="menu-title">Special</h1>
   <div class="level-grid" id="specialGrid">
     <div class="level-block active" id="special1">S1</div>
-    <div class="level-block locked coming-soon"></div>
+    <div class="level-block active" id="special2">S2</div>
     <div class="level-block locked coming-soon"></div>
     <div class="level-block locked coming-soon"></div>
     <div class="level-block locked coming-soon"></div>
@@ -426,7 +414,6 @@
   <button class="menu-btn" id="backFromSpecial">Back</button>
 </div>
 
-<!-- 签到弹窗 -->
 <div id="signModal" class="modal hidden">
   <h2 class="sign-title">Daily Check-in</h2>
   <p class="sign-desc" id="signDesc">Check in every day to get gold coins!</p>
@@ -457,7 +444,6 @@
   </div>
 </div>
 
-<!-- 游戏对局界面 -->
 <div class="score-row hidden" id="scoreRow">
   <div id="score">Score: 0</div>
   <div id="timer">Time: 0</div>
@@ -467,7 +453,6 @@
 <div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe</div>
 
 <script>
-  // 全局元素获取
   const gameBoard = document.getElementById('game-board');
   const scoreRow = document.getElementById('scoreRow');
   const scoreElement = document.getElementById('score');
@@ -492,6 +477,7 @@
   const level3 = document.getElementById('level-3');
   const level4 = document.getElementById('level-4');
   const special1 = document.getElementById('special1');
+  const special2 = document.getElementById('special2');
   const comingSoonElements = document.querySelectorAll('.coming-soon');
   const signBtn = document.getElementById('signBtn');
   const signModal = document.getElementById('signModal');
@@ -505,7 +491,6 @@
   const reward30 = document.getElementById('reward30');
   const reward50 = document.getElementById('reward50');
 
-  // 游戏核心数据
   let hasDoneTutorial = localStorage.getItem('hasDoneTutorial') === 'true';
   let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
   let unlockedLevel3 = localStorage.getItem('unlockedLevel3') === 'true';
@@ -520,7 +505,12 @@
   let specialTimeLeft = 0;
   let specialTimer;
 
-  // 签到&金币核心数据
+  let isS2Mode = false;
+  const S2_BASE_SPEED = 230;
+  const S2_MIN_SPEED = 80;
+  const S2_SPEED_STEP = 10;
+  let special2Highscore = parseInt(localStorage.getItem('special2Highscore') || 0);
+
   let userGold = parseInt(localStorage.getItem('userGold') || 0);
   let totalSignDays = parseInt(localStorage.getItem('totalSignDays') || 0);
   let lastSignDate = localStorage.getItem('lastSignDate') || '';
@@ -543,7 +533,6 @@
   let isPaused = false;
   let touchStartX = 0, touchStartY = 0;
 
-  // 游戏常量
   const STAGE1_TIME = 40;
   const STAGE1_SCORE = 80;
   const STAGE2_TIME = 60;
@@ -555,14 +544,12 @@
   const LEVEL4_PASS = 150;
   const TUTORIAL_PASS = 40;
 
-  // 第四关障碍物
   const level4Obstacles = [
     {x:2, y:2}, {x:2, y:17},
     {x:17, y:2}, {x:17, y:17},
     {x:4, y:4}, {x:15, y:15}
   ];
 
-  // 双语文本
   const langText = {
     cn: {
       start:'开始游戏',selectLevel:'选择关卡',back:'返回',tutorial:'教学关',
@@ -575,6 +562,7 @@
       specialGoal1:'阶段1：短时间内尽可能吃更多食物\n达标：80 分',
       specialGoal2:'阶段2：短时间内尽可能吃更多食物\n达标：140 分',
       specialGoal3:'最终阶段：全力冲刺最高分！',
+      special2Goal:'无限模式：每吃一个食物速度加快\n无时间限制，冲刺最高分！',
       stageStart:'即将进入 阶段',
       tabletNotice:'平板用户可在游玩中随意切换操作方式',
       skipTutorial:'是否跳过教学关？',gameOver:'游戏结束',
@@ -583,12 +571,12 @@
       backToMenu:'回到主页',
       tips:'电脑: ↑↓←→ 移动 | 空格暂停 | 手机: 滑动移动 | 点圆圈暂停',
       selectMode:'选择模式',levels:'普通关卡',special:'特殊玩法',
-      special1:'特殊1',time:'时间',stage:'阶段',target:'目标',
+      special1:'特殊1',special2:'特殊2',time:'时间',stage:'阶段',target:'目标',
       signTitle:'每日签到',signDesc:'每日签到领取金币，累计天数解锁限定奖励！',
       checkInToday:'今日签到',close:'关闭',totalSign:'累计签到：{num} 天',
       day:'第{num}天',reward7:'7天',reward30:'30天',reward50:'50天',
       reward7Content:'5000金币',reward30Content:'20000金币',reward50Content:'限定皮肤',
-      checked:'已签到',today:'今日',unlocked:'已解锁'
+      checked:'已签到',today:'今日',unlocked:'已解锁',highScore:'历史最高分'
     },
     en: {
       start:'Start Game',selectLevel:'Select Level',back:'Back',tutorial:'Tutorial',
@@ -601,6 +589,7 @@
       specialGoal1:'Stage 1: Eat as much as possible quickly\nTarget: 80',
       specialGoal2:'Stage 2: Eat as much as possible quickly\nTarget: 140',
       specialGoal3:'Final Stage: Get the highest score!',
+      special2Goal:'Endless Mode: Speed up with every food\nNo time limit, beat your high score!',
       stageStart:'Entering Stage',
       tabletNotice:'Tablet users can switch control anytime',
       skipTutorial:'Skip tutorial?',gameOver:'Game Over',
@@ -609,58 +598,47 @@
       backToMenu:'Back to Menu',
       tips:'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
       selectMode:'Select Mode',levels:'Levels',special:'Special',
-      special1:'Special 1',time:'Time',stage:'Stage',target:'Target',
+      special1:'Special 1',special2:'Special 2',time:'Time',stage:'Stage',target:'Target',
       signTitle:'Daily Check-in',signDesc:'Check in daily for gold, unlock rewards with total days!',
       checkInToday:'Check in Today',close:'Close',totalSign:'Total Check-in: {num} days',
       day:'Day {num}',reward7:'7 Days',reward30:'30 Days',reward50:'50 Days',
       reward7Content:'5000 Coins',reward30Content:'20000 Coins',reward50Content:'Limited Skin',
-      checked:'Checked',today:'Today',unlocked:'Unlocked'
+      checked:'Checked',today:'Today',unlocked:'Unlocked',highScore:'High Score'
     }
   };
 
-  // ========== 核心适配函数 ==========
   function autoFitScreen() {
     const root = document.documentElement;
-    const baseWidth = 400; // 基准宽度
+    const baseWidth = 400;
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
 
-    // 计算最大可用宽度：竖屏取屏幕宽度的85%，横屏取屏幕高度的75%，保证棋盘是正方形不溢出
     let maxAvailableWidth;
     if (window.innerWidth < window.innerHeight) {
-      // 竖屏（手机）
       maxAvailableWidth = Math.min(screenWidth * 0.85, screenHeight * 0.75);
     } else {
-      // 横屏（电脑/iPad）
       maxAvailableWidth = Math.min(screenWidth * 0.6, screenHeight * 0.8, baseWidth);
     }
 
-    // 计算缩放比例，最小不低于0.5，保证最小屏幕也能看清
     const scale = Math.max(maxAvailableWidth / baseWidth, 0.5);
-    
-    // 更新CSS变量，所有元素自动缩放
     root.style.setProperty('--scale', scale);
 
-    // 游戏正在运行时，重新渲染棋盘，避免错位
     if (isGameStarted && !isPaused) {
       draw();
     }
   }
 
-  // 监听屏幕变化：页面加载、窗口大小改变、屏幕旋转，自动重新适配
   window.addEventListener('load', autoFitScreen);
   window.addEventListener('resize', autoFitScreen);
   window.addEventListener('orientationchange', () => {
-    setTimeout(autoFitScreen, 100); // 转屏后延迟100ms适配，保证获取到正确的尺寸
+    setTimeout(autoFitScreen, 100);
   });
 
-  // 金币更新函数
   function updateGoldCount() {
     goldCount.innerText = `💰 ${userGold}`;
     localStorage.setItem('userGold', userGold);
   }
 
-  // 签到系统核心函数
   function initSignSystem() {
     renderSignList();
     updateSignProgress();
@@ -673,17 +651,20 @@
 
   function renderSignList() {
     signList.innerHTML = '';
+    const currentCycle = Math.floor(totalSignDays / 7);
+    const cycleStartDay = currentCycle * 7 + 1;
+    const todaySignDay = totalSignDays + 1;
+
     for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      const dateStr = date.toISOString().split('T')[0];
-      const isToday = dateStr === today;
-      const isChecked = lastSignDate >= dateStr && totalSignDays > (6 - i);
+      const dayNum = cycleStartDay + i;
+      const isChecked = dayNum <= totalSignDays;
+      const isToday = dayNum === todaySignDay && lastSignDate !== today;
+      let dayText = isToday ? langText[lang].today : langText[lang].day.replace('{num}', dayNum);
 
       const item = document.createElement('div');
       item.className = `sign-item ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''}`;
       item.innerHTML = `
-        <div class="sign-day">${isToday ? langText[lang].today : langText[lang].day.replace('{num}', i+1)}</div>
+        <div class="sign-day">${dayText}</div>
         <div class="sign-reward">${DAILY_GOLD}</div>
       `;
       signList.appendChild(item);
@@ -733,7 +714,6 @@
     alert(lang === 'en' ? `Check in success! +${DAILY_GOLD} Coins` : `签到成功！获得 ${DAILY_GOLD} 金币`);
   }
 
-  // 语言设置函数
   function setLang(newLang) {
     lang = newLang;
     btnEn.classList.toggle('active', lang === 'en');
@@ -782,9 +762,9 @@
     startSpecialTimer();
   }
 
-  // 特殊模式启动
   function startSpecial1() {
     isSpecialMode = true;
+    isS2Mode = false;
     specialStage = 1;
     level = 0;
     mainMenu.classList.add('hidden');
@@ -793,6 +773,7 @@
     scoreRow.classList.remove('hidden');
     gameBoard.classList.remove('hidden');
     tips.classList.remove('hidden');
+    timerElement.classList.remove('hidden');
     isGameStarted = true;
     isPaused = false;
     pauseBtn.innerHTML = '⏸';
@@ -805,7 +786,28 @@
     startSpecialTimer();
   }
 
-  // 特殊模式定时器
+  function startSpecial2() {
+    isSpecialMode = false;
+    isS2Mode = true;
+    level = 0;
+    mainMenu.classList.add('hidden');
+    modeSelect.classList.add('hidden');
+    specialSelect.classList.add('hidden');
+    scoreRow.classList.remove('hidden');
+    gameBoard.classList.remove('hidden');
+    tips.classList.remove('hidden');
+    timerElement.classList.add('hidden');
+    isGameStarted = true;
+    isPaused = false;
+    pauseBtn.innerHTML = '⏸';
+    pauseBtn.style.background = '#F44336';
+    score = 0;
+    clearInterval(gameLoop);
+    clearInterval(specialTimer);
+    resetGame();
+    startGameLoop();
+  }
+
   function startSpecialTimer() {
     clearInterval(specialTimer);
     if (specialStage === 1) specialTimeLeft = STAGE1_TIME;
@@ -823,7 +825,6 @@
     }, 1000);
   }
 
-  // 特殊模式阶段检查
   function checkSpecialScore() {
     if (specialStage === 1 && score >= STAGE1_SCORE) {
       specialStar1 = true; 
@@ -839,7 +840,6 @@
     }
   }
 
-  // 阶段切换倒计时
   function countdownToNewStage() {
     clearInterval(gameLoop); 
     clearInterval(specialTimer);
@@ -872,7 +872,6 @@
     }, 800);
   }
 
-  // 页面按钮事件绑定
   startBtn.onclick = () => { 
     mainMenu.classList.add('hidden'); 
     modeSelect.classList.remove('hidden'); 
@@ -904,13 +903,16 @@
   level3.onclick = () => { if (unlockedLevel3) selectLevel(3); };
   level4.onclick = () => { if (unlockedLevel4) selectLevel(4); };
   special1.onclick = startSpecial1;
+  special2.onclick = startSpecial2;
 
   function selectLevel(lv) {
     isSpecialMode = false;
+    isS2Mode = false;
     clearInterval(specialTimer);
     level = lv;
     localStorage.setItem('savedLevel', level);
     score = 0;
+    timerElement.classList.remove('hidden');
     if (level === 0) { askSkipTutorial(); } else { startGame(); }
   }
 
@@ -959,9 +961,12 @@
   }
 
   function startGame() {
-    isSpecialMode = false; clearInterval(specialTimer);
+    isSpecialMode = false;
+    isS2Mode = false;
+    clearInterval(specialTimer);
     mainMenu.classList.add('hidden'); levelSelect.classList.add('hidden');
     scoreRow.classList.remove('hidden'); gameBoard.classList.remove('hidden'); tips.classList.remove('hidden');
+    timerElement.classList.remove('hidden');
     isGameStarted = true; isPaused = false;
     pauseBtn.innerHTML = '⏸'; pauseBtn.style.background = '#F44336';
     score = 0;
@@ -970,7 +975,6 @@
     startGameLoop();
   }
 
-  // 游戏重置函数
   function resetGame() {
     clearInterval(gameLoop); 
     gameBoard.classList.remove('tutorial'); 
@@ -981,6 +985,10 @@
       if (specialStage === 2) baseSpeed = 200;
       if (specialStage === 3) baseSpeed = 170;
       if (specialStage === 1) gameBoard.classList.add('tutorial');
+    } else if (isS2Mode) {
+      gridSize = 20;
+      baseSpeed = S2_BASE_SPEED;
+      gameBoard.classList.add('tutorial');
     } else if (level === 0) { 
       gridSize = 20; baseSpeed = 280; gameBoard.classList.add('tutorial');
     } else if (level === 1) { 
@@ -1007,6 +1015,8 @@
   function updateScore() {
     if (isSpecialMode) {
       scoreElement.innerText = `${langText[lang].special1} ${langText[lang].stage}:${specialStage} | ${langText[lang].score}: ${score}`;
+    } else if (isS2Mode) {
+      scoreElement.innerText = `${langText[lang].special2} | ${langText[lang].score}: ${score} | ${langText[lang].highScore}: ${special2Highscore}`;
     } else {
       let label = [langText[lang].tutorial, langText[lang].level1, langText[lang].level2, langText[lang].level3, langText[lang].level4][level];
       let targetTxt = lang === 'en' ? 'Target' : '目标';
@@ -1026,13 +1036,13 @@
       f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
     } while (
       snake.some(s=>s.x===f.x&&s.y===f.y)
-      || (level===4 && !isSpecialMode && level4Obstacles.some(o=>o.x===f.x&&o.y===f.y))
+      || (level===4 && !isSpecialMode && !isS2Mode && level4Obstacles.some(o=>o.x===f.x&&o.y===f.y))
     );
     return f;
   }
 
   function moveFoodSmart(){
-    if(level!==3||isPaused||isSpecialMode)return;
+    if(level!==3||isPaused||isSpecialMode||isS2Mode)return;
     const h=snake[0]; const d=Math.hypot(h.x-food.x,h.y-food.y);
     const s=d<4?0.5:d<7?1:1.5;
     let dx=0,dy=0; Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);
@@ -1040,16 +1050,14 @@
     if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){ food.x=nx;food.y=ny; }
   }
 
-  // 游戏主循环
   function update() {
     if (isPaused || !isGameStarted) return;
     const h = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
 
-    // 碰撞检测
     if (
       h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize
       || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)
-      || (level===4 && !isSpecialMode && level4Obstacles.some(o=>o.x===h.x&&o.y===h.y))
+      || (level===4 && !isSpecialMode && !isS2Mode && level4Obstacles.some(o=>o.x===h.x&&o.y===h.y))
     ) {
       gameOver();
       return;
@@ -1062,8 +1070,15 @@
       updateScore(); 
       food = spawnFood(); 
       ate = true;
+      
       if (isSpecialMode) checkSpecialScore();
-      if (level === 2 && !isSpecialMode) { 
+      
+      if (isS2Mode) {
+        speed = Math.max(S2_MIN_SPEED, speed - S2_SPEED_STEP);
+        startGameLoop();
+      }
+
+      if (level === 2 && !isSpecialMode && !isS2Mode) { 
         speed = Math.max(85, speed - 8); 
         startGameLoop(); 
       }
@@ -1071,7 +1086,7 @@
       snake.pop(); 
     }
 
-    if (!isSpecialMode) {
+    if (!isSpecialMode && !isS2Mode) {
       if (level === 0 && score >= TUTORIAL_PASS) { 
         hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); 
         tutorialComplete(); 
@@ -1101,7 +1116,6 @@
     draw();
   }
 
-  // 游戏渲染
   function draw() {
     gameBoard.innerHTML = ''; 
     const t = document.createElement('div'); 
@@ -1112,6 +1126,8 @@
       t.innerHTML = langText[lang].specialGoal2.replace('140', '<span style="color:#f44336;">140</span>');
     } else if (isSpecialMode && specialStage === 3) {
       t.innerText = langText[lang].specialGoal3;
+    } else if (isS2Mode) {
+      t.innerText = langText[lang].special2Goal;
     } else if (!isSpecialMode && level === 0) {
       t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
     } else if (!isSpecialMode && level === 2) {
@@ -1121,8 +1137,7 @@
     }
     if (t.innerText || t.innerHTML) gameBoard.appendChild(t);
 
-    // 绘制第四关障碍物
-    if (level === 4 && !isSpecialMode) {
+    if (level === 4 && !isSpecialMode && !isS2Mode) {
       level4Obstacles.forEach(obs => {
         const o = document.createElement('div');
         o.style.gridColumnStart = obs.x + 1;
@@ -1133,7 +1148,6 @@
       });
     }
 
-    // 绘制蛇
     snake.forEach((s,i)=>{
       const e=document.createElement('div');
       e.style.gridColumnStart = s.x + 1;
@@ -1141,7 +1155,6 @@
       e.style.backgroundColor = i===0?'#4CAF50':'#8BC34A';
       gameBoard.appendChild(e);
     });
-    // 绘制食物
     const f=document.createElement('div');
     f.style.gridColumnStart = food.x + 1;
     f.style.gridRowStart = food.y + 1;
@@ -1150,7 +1163,6 @@
     gameBoard.appendChild(f);
   }
 
-  // 游戏结束&胜利函数
   function gameOver(){
     clearInterval(gameLoop);
     clearInterval(specialTimer);
@@ -1158,6 +1170,12 @@
       if (score > specialHighscore) {
         specialHighscore = score;
         saveSpecialProgress();
+      }
+    }
+    if (isS2Mode) {
+      if (score > special2Highscore) {
+        special2Highscore = score;
+        localStorage.setItem('special2Highscore', special2Highscore);
       }
     }
     showModal(langText[lang].gameOver, `${langText[lang].score}: ${score}`, false, true);
@@ -1211,6 +1229,8 @@
         pauseBtn.style.background='#F44336';
         if (isSpecialMode) { 
           restartCurrentSpecialStage(); 
+        } else if (isS2Mode) {
+          startSpecial2();
         } else { 
           score = 0; 
           resetGame(); 
@@ -1230,12 +1250,10 @@
     const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);score=0;resetGame();startGameLoop();}else{cd.innerText=n;}},800);
   }
 
-  // 暂停功能
   function togglePause(){ if(!isGameStarted)return; isPaused=!isPaused; pauseBtn.innerHTML=isPaused?'▶':'⏸'; pauseBtn.style.background=isPaused?'#4CAF50':'#F44336'; }
   pauseBtn.onclick=togglePause;
   function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
 
-  // 键盘控制
   document.addEventListener('keydown',e=>{
     if(e.keyCode===32){togglePause();e.preventDefault();}
     if(isPaused||!isGameStarted)return;
@@ -1246,7 +1264,6 @@
     if(k===D&&direction.y!==-1)direction={x:0,y:1};
   });
 
-  // 触摸控制
   document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
   document.addEventListener('touchend',e=>{
     if(!isGameStarted||isPaused)return;
@@ -1259,7 +1276,6 @@
     }
   });
 
-  // 关卡解锁逻辑
   function refreshLevelLock() {
     level1.classList.toggle('locked', !hasDoneTutorial);
     level1.classList.toggle('active', hasDoneTutorial);
@@ -1272,7 +1288,6 @@
     modeSpecial.classList.toggle('locked', !unlockedLevel3);
   }
 
-  // 页面初始化
   btnEn.onclick = () => setLang('en');
   btnCn.onclick = () => setLang('cn');
   setLang(lang);
