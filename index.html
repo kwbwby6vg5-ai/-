@@ -406,6 +406,7 @@ canvas {
     <button class="btn btn-warning btn-small" id="shopBtn">皮肤商店</button>
     <button class="btn btn-warning btn-small" id="achievementBtn">成就</button>
     <button class="btn btn-warning btn-small" id="rankBtn">排行榜</button>
+    <button class="btn btn-warning btn-small" id="resetDataBtn">重置数据</button>
   </div>
 </div>
 
@@ -543,6 +544,7 @@ window.onload = function() {
   const shopBtn = document.getElementById('shopBtn');
   const achievementBtn = document.getElementById('achievementBtn');
   const rankBtn = document.getElementById('rankBtn');
+  const resetDataBtn = document.getElementById('resetDataBtn');
   const doSignBtn = document.getElementById('doSignBtn');
   const closeSignBtn = document.getElementById('closeSignBtn');
   const doubleBtn = document.getElementById('doubleBtn');
@@ -574,7 +576,7 @@ window.onload = function() {
     gold: 0,
     totalSignDays: 0,
     lastSignDate: '',
-    unlockedLevels: [true, true, false, false, false, false, false, false, false, false, false, false, false],
+    unlockedLevels: [true, true, true, false, false, false, false, false, false, false, false, false, false],
     passedLevels: [],
     s2HighScore: 0,
     unlockedSkins: { head: ['default'], body: ['default'], tail: ['default'] },
@@ -587,6 +589,11 @@ window.onload = function() {
     const saved = localStorage.getItem('snakePlayerData');
     if (saved) playerData = JSON.parse(saved);
     if (!playerData.passedLevels) playerData.passedLevels = [];
+    if (!playerData.unlockedLevels) {
+      playerData.unlockedLevels = [true, true, true, false, false, false, false, false, false, false, false, false, false];
+    }
+    playerData.unlockedLevels[1] = true;
+    playerData.unlockedLevels[2] = true;
     savePlayerData();
     checkSpecialModeLock();
   }
@@ -770,7 +777,6 @@ window.onload = function() {
     playerData.gold+=1000;playerData.totalSignDays+=1;playerData.lastSignDate=today;savePlayerData();showFloatTip('签到成功！+1000金币');
   }
 
-  // 🔥 彻底修复：清空所有定时器+游戏状态，杜绝关卡卡顿
   function clearAllTimer() {
     if (gameLoop) clearInterval(gameLoop);
     if (gameTimer) clearInterval(gameTimer);
@@ -874,7 +880,6 @@ window.onload = function() {
     {food.x=nx;food.y=ny}
   }
 
-  // 修复：失败隐藏所有奖励按钮
   function handleDeath(){
     clearAllTimer();
     thisGameGold = 0;
@@ -883,7 +888,6 @@ window.onload = function() {
     showSettleModal(false);
   }
 
-  // 修复：胜利逻辑，正常解锁下一关
   function handleLevelWin(){
     clearAllTimer();
     pauseBtn.classList.add('hidden');
@@ -984,11 +988,10 @@ window.onload = function() {
     }
   }
 
-  // 🔥 彻底修复：启动游戏前强制清空所有状态，第二关绝对能刷出来
   function startGame(mode,id){
     clearAllTimer();
     gameMode=mode;
-    if(mode==='level')currentLevel=id;
+    currentLevel = id;
     if(mode==='special')currentSpecial=id;
     
     hideAllScreens();
@@ -1045,13 +1048,14 @@ window.onload = function() {
     }
   });
 
-  // 🔥 彻底修复：点下一关自动领奖励+清空状态+正常跳转第二关
   nextLevelBtn.addEventListener('click',()=>{
     playerData.gold += thisGameGold;
+    const nextLvl = currentLevel + 1;
+    playerData.unlockedLevels[nextLvl] = true;
     savePlayerData();
     settleModal.classList.add('hidden');
     clearAllTimer();
-    startGame('level',currentLevel+1);
+    setTimeout(()=>startGame('level',nextLvl),100);
   });
 
   doubleBtn.addEventListener('click',()=>{
@@ -1067,7 +1071,7 @@ window.onload = function() {
     savePlayerData();
     settleModal.classList.add('hidden');
     clearAllTimer();
-    startGame(gameMode,gameMode==='level'?currentLevel:currentSpecial);
+    startGame(gameMode,currentLevel);
   });
 
   homeBtn.addEventListener('click',()=>{
@@ -1092,6 +1096,20 @@ window.onload = function() {
   closeSignBtn.addEventListener('click',()=>{signModal.classList.add('hidden')});
   doSignBtn.addEventListener('click',doSign);
 
+  resetDataBtn.addEventListener('click',()=>{
+    localStorage.removeItem('snakePlayerData');
+    playerData = {
+      gold:0,totalSignDays:0,lastSignDate:'',
+      unlockedLevels:[true,true,true,false,false,false,false,false,false,false,false,false,false],
+      passedLevels:[],s2HighScore:0,
+      unlockedSkins:{head:['default'],body:['default'],tail:['default']},
+      usingSkins:{head:'default',body:['default'],tail:'default'},
+      achievements:{},hasSeenTutorial:false
+    };
+    savePlayerData();
+    showFloatTip('数据重置成功！');
+  });
+
   shopBtn.addEventListener('click',()=>{showScreen(shopScreen)});
   backFromShop.addEventListener('click',()=>{showScreen(homeScreen)});
   achievementBtn.addEventListener('click',()=>{showScreen(achievementScreen)});
@@ -1105,20 +1123,13 @@ window.onload = function() {
     renderShopGrid(btn.dataset.tab);
   })});
 
-  // 修复：跳过关卡真·通关
   skipTutorial.addEventListener('click',()=>{
     playerData.hasSeenTutorial = true;
-    localStorage.setItem('hasSeenTutorial','true');
     tutorialModal.classList.add('hidden');
-    
     if(pendingGameStart.mode === 'level'){
       const lid = pendingGameStart.id;
-      if(!playerData.passedLevels.includes(lid)){
-        playerData.passedLevels.push(lid);
-      }
-      if(lid + 1 < levelConfig.length){
-        playerData.unlockedLevels[lid + 1] = true;
-      }
+      if(!playerData.passedLevels.includes(lid))playerData.passedLevels.push(lid);
+      if(lid+1<levelConfig.length)playerData.unlockedLevels[lid+1]=true;
       savePlayerData();
       showFloatTip('已跳过关卡！');
       showScreen(levelScreen);
@@ -1127,7 +1138,6 @@ window.onload = function() {
 
   startWithTutorial.addEventListener('click',()=>{
     playerData.hasSeenTutorial=true;
-    localStorage.setItem('hasSeenTutorial','true');
     tutorialModal.classList.add('hidden');
     startGame(pendingGameStart.mode,pendingGameStart.id);
   });
