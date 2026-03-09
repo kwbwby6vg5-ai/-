@@ -770,11 +770,16 @@ window.onload = function() {
     playerData.gold+=1000;playerData.totalSignDays+=1;playerData.lastSignDate=today;savePlayerData();showFloatTip('签到成功！+1000金币');
   }
 
+  // 🔥 彻底修复：清空所有定时器+游戏状态，杜绝关卡卡顿
   function clearAllTimer() {
     if (gameLoop) clearInterval(gameLoop);
     if (gameTimer) clearInterval(gameTimer);
     if (countdownTimer) clearInterval(countdownTimer);
-    gameLoop = null; gameTimer = null; countdownTimer = null;
+    gameLoop = null;
+    gameTimer = null;
+    countdownTimer = null;
+    isGameRunning = false;
+    isPaused = false;
   }
 
   function initGame(){
@@ -869,9 +874,8 @@ window.onload = function() {
     {food.x=nx;food.y=ny}
   }
 
-  // 🔥 修复1：失败时隐藏所有奖励按钮
+  // 修复：失败隐藏所有奖励按钮
   function handleDeath(){
-    isGameRunning = false;
     clearAllTimer();
     thisGameGold = 0;
     pauseBtn.classList.add('hidden');
@@ -879,9 +883,8 @@ window.onload = function() {
     showSettleModal(false);
   }
 
-  // 🔥 修复2：胜利逻辑，关卡衔接彻底修复
+  // 修复：胜利逻辑，正常解锁下一关
   function handleLevelWin(){
-    isGameRunning = false;
     clearAllTimer();
     pauseBtn.classList.add('hidden');
     if(!playerData.passedLevels.includes(currentLevel))playerData.passedLevels.push(currentLevel);
@@ -967,7 +970,6 @@ window.onload = function() {
   function togglePause(){if(!isGameRunning)return;isPaused=!isPaused;pauseBtn.textContent=isPaused?'继续':'暂停';if(!isPaused)startGameLoop()}
   
   function startGameLoop(){
-    clearAllTimer();
     if(isGameRunning&&!isPaused){gameLoop = setInterval(gameUpdate, currentSpeed)}
   }
 
@@ -982,7 +984,9 @@ window.onload = function() {
     }
   }
 
+  // 🔥 彻底修复：启动游戏前强制清空所有状态，第二关绝对能刷出来
   function startGame(mode,id){
+    clearAllTimer();
     gameMode=mode;
     if(mode==='level')currentLevel=id;
     if(mode==='special')currentSpecial=id;
@@ -1008,7 +1012,6 @@ window.onload = function() {
     },800);
   }
 
-  // 🔥 修复3：结算界面逻辑，胜利/失败按钮正确显示
   function showSettleModal(win){
     settleModal.classList.remove('hidden');
     settleTitle.textContent=win?'🎉 关卡通关':'💀 游戏结束';
@@ -1042,11 +1045,12 @@ window.onload = function() {
     }
   });
 
-  // 🔥 修复4：点下一关自动领取奖励，无需额外确认
+  // 🔥 彻底修复：点下一关自动领奖励+清空状态+正常跳转第二关
   nextLevelBtn.addEventListener('click',()=>{
     playerData.gold += thisGameGold;
     savePlayerData();
     settleModal.classList.add('hidden');
+    clearAllTimer();
     startGame('level',currentLevel+1);
   });
 
@@ -1062,6 +1066,7 @@ window.onload = function() {
     playerData.gold += thisGameGold;
     savePlayerData();
     settleModal.classList.add('hidden');
+    clearAllTimer();
     startGame(gameMode,gameMode==='level'?currentLevel:currentSpecial);
   });
 
@@ -1069,6 +1074,7 @@ window.onload = function() {
     playerData.gold += thisGameGold;
     savePlayerData();
     settleModal.classList.add('hidden');
+    clearAllTimer();
     showScreen(homeScreen);
   });
 
@@ -1099,7 +1105,7 @@ window.onload = function() {
     renderShopGrid(btn.dataset.tab);
   })});
 
-  // 🔥 修复5：跳过关卡 = 直接通关，解锁下一关
+  // 修复：跳过关卡真·通关
   skipTutorial.addEventListener('click',()=>{
     playerData.hasSeenTutorial = true;
     localStorage.setItem('hasSeenTutorial','true');
@@ -1131,4 +1137,4 @@ window.onload = function() {
 };
 </script>
 </body>
-</html
+</html>
