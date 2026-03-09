@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>贪吃蛇大作战</title>
+<style>
 * {
   margin: 0;
   padding: 0;
@@ -378,136 +385,138 @@ canvas {
     gap: 5px;
   }
 }
-
+</style>
 </head>
+
 <body>
-  <div class="canvas-wrap">
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <button id="pauseBtn" class="btn btn-gray btn-small hidden">暂停</button>
-  </div>
+<div class="canvas-wrap">
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <button id="pauseBtn" class="btn btn-gray btn-small hidden">暂停</button>
+</div>
 
-  <div id="homeScreen" class="screen">
-    <h1 class="title">贪吃蛇大作战</h1>
-    <div class="info-row">
-      <span class="info-text gold-text" id="homeGold">💰 0</span>
-      <span class="info-text" id="homeHighScore">最高分: 0</span>
+<div id="homeScreen" class="screen">
+  <h1 class="title">贪吃蛇大作战</h1>
+  <div class="info-row">
+    <span class="info-text gold-text" id="homeGold">💰 0</span>
+    <span class="info-text" id="homeHighScore">最高分: 0</span>
+  </div>
+  <button class="btn btn-primary" id="startGameBtn">开始游戏</button>
+  <div class="btn-group">
+    <button class="btn btn-warning btn-small" id="signBtn">每日签到</button>
+    <button class="btn btn-warning btn-small" id="shopBtn">皮肤商店</button>
+    <button class="btn btn-warning btn-small" id="achievementBtn">成就</button>
+    <button class="btn btn-warning btn-small" id="rankBtn">排行榜</button>
+  </div>
+</div>
+
+<div id="modeSelectScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">选择模式</h1>
+  <button class="btn btn-primary" id="normalModeBtn">普通关卡模式</button>
+  <button class="btn btn-secondary" id="specialModeBtn">特殊挑战模式</button>
+  <button class="btn btn-gray" id="backFromMode">返回主页</button>
+</div>
+
+<div id="levelScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">普通关卡</h1>
+  <div class="level-grid" id="levelGrid"></div>
+  <button class="btn btn-gray" id="backFromLevel">返回模式选择</button>
+</div>
+
+<div id="specialScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">特殊挑战</h1>
+  <div class="level-grid">
+    <div class="level-block" id="s1Btn">S1</div>
+    <div class="level-block" id="s2Btn">S2</div>
+  </div>
+  <p class="modal-desc">S1: 3阶段计时闯关 | S2: 无限加速冲分</p>
+  <button class="btn btn-gray" id="backFromSpecial">返回模式选择</button>
+</div>
+
+<div id="tutorialModal" class="modal hidden">
+  <div class="modal-box">
+    <h2 class="modal-title" style="color: #3b82f6;">操作说明</h2>
+    <div class="modal-desc" style="text-align: left;">
+      <p>📱 触屏操作：滑动屏幕控制蛇的移动方向</p>
+      <p>⌨️ 键盘：方向键/WASD 移动，空格暂停</p>
+      <p>🍎 吃食物加分加金币，撞墙撞自己失败</p>
     </div>
-    <button class="btn btn-primary" id="startGameBtn">开始游戏</button>
     <div class="btn-group">
-      <button class="btn btn-warning btn-small" id="signBtn">每日签到</button>
-      <button class="btn btn-warning btn-small" id="shopBtn">皮肤商店</button>
-      <button class="btn btn-warning btn-small" id="achievementBtn">成就</button>
-      <button class="btn btn-warning btn-small" id="rankBtn">排行榜</button>
+      <button class="btn btn-primary" id="startWithTutorial">开始游戏</button>
+      <button class="btn btn-gray" id="skipTutorial">跳过关卡</button>
     </div>
   </div>
+</div>
 
-  <div id="modeSelectScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">选择模式</h1>
-    <button class="btn btn-primary" id="normalModeBtn">普通关卡模式</button>
-    <button class="btn btn-secondary" id="specialModeBtn">特殊挑战模式</button>
-    <button class="btn btn-gray" id="backFromMode">返回主页</button>
-  </div>
-
-  <div id="levelScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">普通关卡</h1>
-    <div class="level-grid" id="levelGrid"></div>
-    <button class="btn btn-gray" id="backFromLevel">返回模式选择</button>
-  </div>
-
-  <div id="specialScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">特殊挑战</h1>
-    <div class="level-grid">
-      <div class="level-block" id="s1Btn">S1</div>
-      <div class="level-block" id="s2Btn">S2</div>
+<div id="signModal" class="modal hidden">
+  <div class="modal-box">
+    <h2 class="modal-title" style="color: #fbbf24; font-size: 28px;">每日签到</h2>
+    <p class="modal-desc">每日签到领金币，累计天数领奖励！</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="signProgress" style="width: 0%"></div>
     </div>
-    <p class="modal-desc">S1: 3阶段计时闯关 | S2: 无限加速冲分</p>
-    <button class="btn btn-gray" id="backFromSpecial">返回模式选择</button>
+    <p class="info-text" style="font-size: 14px;" id="signTotal">累计签到: 0 天</p>
+    <div class="sign-list" id="signList"></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="doSignBtn">今日签到</button>
+      <button class="btn btn-gray" id="closeSignBtn">关闭</button>
+    </div>
   </div>
+</div>
 
-  <div id="tutorialModal" class="modal hidden">
-    <div class="modal-box">
-      <h2 class="modal-title" style="color: #3b82f6;">操作说明</h2>
-      <div class="modal-desc" style="text-align: left;">
-        <p>📱 触屏操作：滑动屏幕控制蛇的移动方向</p>
-        <p>⌨️ 键盘：方向键/WASD 移动，空格暂停</p>
-        <p>🍎 吃食物加分加金币，撞墙撞自己失败</p>
+<div id="shopScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">皮肤商店</h1>
+  <div class="info-row">
+    <span class="info-text gold-text" id="shopGold">💰 0</span>
+  </div>
+  <div class="tab-group">
+    <button class="tab-btn active" data-tab="head">蛇头</button>
+    <button class="tab-btn" data-tab="body">身体</button>
+    <button class="tab-btn" data-tab="tail">蛇尾</button>
+  </div>
+  <div class="shop-grid" id="shopGrid"></div>
+  <button class="btn btn-gray" id="backFromShop">返回主页</button>
+</div>
+
+<div id="achievementScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">成就系统</h1>
+  <div class="achievement-list" id="achievementList"></div>
+  <button class="btn btn-gray" id="backFromAchievement">返回主页</button>
+</div>
+
+<div id="rankScreen" class="screen hidden">
+  <h1 class="title" style="font-size: 36px;">好友排行榜</h1>
+  <div class="achievement-list" id="rankList">
+    <div class="achievement-item">
+      <div class="achievement-info">
+        <div class="achievement-name">1. 您</div>
+        <div class="achievement-desc">S2模式最高分</div>
       </div>
-      <div class="btn-group">
-        <button class="btn btn-primary" id="startWithTutorial">开始游戏</button>
-        <button class="btn btn-gray" id="skipTutorial">跳过关卡</button>
-      </div>
+      <span class="achievement-reward" id="rankMyScore">0</span>
     </div>
   </div>
+  <button class="btn btn-gray" id="backFromRank">返回主页</button>
+</div>
 
-  <div id="signModal" class="modal hidden">
-    <div class="modal-box">
-      <h2 class="modal-title" style="color: #fbbf24; font-size: 28px;">每日签到</h2>
-      <p class="modal-desc">每日签到领金币，累计天数领奖励！</p>
-      <div class="progress-bar">
-        <div class="progress-fill" id="signProgress" style="width: 0%"></div>
-      </div>
-      <p class="info-text" style="font-size: 14px;" id="signTotal">累计签到: 0 天</p>
-      <div class="sign-list" id="signList"></div>
-      <div class="btn-group">
-        <button class="btn btn-primary" id="doSignBtn">今日签到</button>
-        <button class="btn btn-gray" id="closeSignBtn">关闭</button>
-      </div>
+<div id="settleModal" class="modal hidden">
+  <div class="modal-box">
+    <h2 class="modal-title" id="settleTitle">游戏结束</h2>
+    <p class="modal-desc" id="settleDesc">本局得分: 0</p>
+    <p class="modal-desc gold-text" id="settleGold">本局获得金币: 0</p>
+    <div class="btn-group">
+      <button class="btn btn-warning" id="doubleBtn">看广告 奖励翻倍</button>
+      <button class="btn btn-primary" id="confirmBtn">领取奖励</button>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary btn-small" id="nextLevelBtn" style="display:none;">下一关</button>
+      <button class="btn btn-secondary btn-small" id="restartBtn">再来一局</button>
+      <button class="btn btn-gray btn-small" id="homeBtn">返回主页</button>
     </div>
   </div>
-
-  <div id="shopScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">皮肤商店</h1>
-    <div class="info-row">
-      <span class="info-text gold-text" id="shopGold">💰 0</span>
-    </div>
-    <div class="tab-group">
-      <button class="tab-btn active" data-tab="head">蛇头</button>
-      <button class="tab-btn" data-tab="body">身体</button>
-      <button class="tab-btn" data-tab="tail">蛇尾</button>
-    </div>
-    <div class="shop-grid" id="shopGrid"></div>
-    <button class="btn btn-gray" id="backFromShop">返回主页</button>
-  </div>
-
-  <div id="achievementScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">成就系统</h1>
-    <div class="achievement-list" id="achievementList"></div>
-    <button class="btn btn-gray" id="backFromAchievement">返回主页</button>
-  </div>
-
-  <div id="rankScreen" class="screen hidden">
-    <h1 class="title" style="font-size: 36px;">好友排行榜</h1>
-    <div class="achievement-list" id="rankList">
-      <div class="achievement-item">
-        <div class="achievement-info">
-          <div class="achievement-name">1. 您</div>
-          <div class="achievement-desc">S2模式最高分</div>
-        </div>
-        <span class="achievement-reward" id="rankMyScore">0</span>
-      </div>
-    </div>
-    <button class="btn btn-gray" id="backFromRank">返回主页</button>
-  </div>
-
-  <div id="settleModal" class="modal hidden">
-    <div class="modal-box">
-      <h2 class="modal-title" id="settleTitle">游戏结束</h2>
-      <p class="modal-desc" id="settleDesc">本局得分: 0</p>
-      <p class="modal-desc gold-text" id="settleGold">本局获得金币: 0</p>
-      <div class="btn-group">
-        <button class="btn btn-warning" id="doubleBtn">看广告 奖励翻倍</button>
-        <button class="btn btn-primary" id="confirmBtn">领取奖励</button>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary btn-small" id="nextLevelBtn" style="display:none;">下一关</button>
-        <button class="btn btn-secondary btn-small" id="restartBtn">再来一局</button>
-        <button class="btn btn-gray btn-small" id="homeBtn">返回主页</button>
-      </div>
-    </div>
-  </div>
+</div>
 
 <script>
 window.onload = function() {
+
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const pauseBtn = document.getElementById('pauseBtn');
@@ -680,7 +689,6 @@ window.onload = function() {
     renderLevelGrid(); renderSignList(); renderAchievementList(); renderShopGrid(currentTab); checkSpecialModeLock();
   }
 
-  // 修复：关卡格子显示「第一关、第二关」
   function renderLevelGrid(){
     levelGrid.innerHTML='';
     const tut=document.createElement('div');tut.className=`level-block tutorial ${playerData.unlockedLevels[0]?'':'locked'}`;
@@ -764,7 +772,6 @@ window.onload = function() {
     playerData.gold+=1000;playerData.totalSignDays+=1;playerData.lastSignDate=today;savePlayerData();showFloatTip('签到成功！+1000金币');
   }
 
-  // 全局清理所有定时器 —— 根治卡顿
   function clearAllTimer() {
     if (gameLoop) clearInterval(gameLoop);
     if (gameTimer) clearInterval(gameTimer);
@@ -866,7 +873,6 @@ window.onload = function() {
     {food.x=nx;food.y=ny}
   }
 
-  // 修复：失败 → 金币清空
   function handleDeath(){
     isGameRunning = false;
     clearAllTimer();
@@ -875,7 +881,6 @@ window.onload = function() {
     showSettleModal(false);
   }
 
-  // 修复：胜利 → 才给金币
   function handleLevelWin(){
     isGameRunning = false;
     clearAllTimer();
@@ -978,7 +983,6 @@ window.onload = function() {
     }
   }
 
-  // 修复：新增 3→2→1 倒计时，彻底解决卡顿
   function startGame(mode,id){
     gameMode=mode;
     if(mode==='level')currentLevel=id;
@@ -994,7 +998,6 @@ window.onload = function() {
     
     initGame();
 
-    // 3 2 1 倒计时
     let count = 3;
     drawCountdown(count);
     countdownTimer = setInterval(()=>{
@@ -1019,7 +1022,6 @@ window.onload = function() {
     doubleBtn.disabled = !win;
   }
 
-  // 事件绑定
   pauseBtn.addEventListener('click',togglePause);
   document.addEventListener('keydown',e=>{
     if(e.code==='Space'){e.preventDefault();togglePause()}
