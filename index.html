@@ -1,1299 +1,1109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Snake Game</title>
-  <style>
-    :root {
-      --base-width: 400px;
-      --scale: 1;
-      --cell-size: calc(20px * var(--scale));
-      --safe-top: env(safe-area-inset-top);
-      --safe-bottom: env(safe-area-inset-bottom);
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background: #0f172a;
+  font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.canvas-wrap {
+  position: relative;
+}
+canvas {
+  display: block;
+  background: #1e293b;
+  border: 3px solid #334155;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 70vh;
+  will-change: transform;
+  transform: translateZ(0);
+}
+#pauseBtn {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  z-index: 100;
+}
+.screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  z-index: 999;
+  padding: 20px;
+  overflow-y: auto;
+}
+.hidden {
+  display: none !important;
+}
+.title {
+  font-size: 48px;
+  font-weight: 900;
+  color: #22c55e;
+  text-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+  margin-bottom: 40px;
+  text-align: center;
+}
+.btn {
+  width: 260px;
+  height: 65px;
+  border-radius: 35px;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 10px 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+.btn-secondary {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+.btn-warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+.btn-gray {
+  background: #475569;
+}
+.btn-small {
+  width: 110px;
+  height: 45px;
+  font-size: 15px;
+  margin: 5px;
+}
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 380px;
+  margin: 15px 0;
+  padding: 12px 18px;
+  background: #334155;
+  border-radius: 12px;
+}
+.info-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+.gold-text {
+  color: #fbbf24;
+}
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-width: 400px;
+  width: 100%;
+  margin: 25px 0;
+}
+.level-block {
+  aspect-ratio: 1/1;
+  border-radius: 12px;
+  background: #334155;
+  border: 2px solid #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  padding: 4px;
+  white-space: nowrap;
+}
+.level-block.active {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-color: #86efac;
+}
+.level-block.locked {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+}
+.level-block.tutorial {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: #93c5fd;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.modal-box {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 30px 20px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.modal-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.modal-desc {
+  font-size: 18px;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.sign-list {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  max-width: 400px;
+  width: 100%;
+  margin: 20px 0;
+}
+.sign-item {
+  background: #334155;
+  border-radius: 8px;
+  padding: 10px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 2px solid #475569;
+}
+.sign-item.checked {
+  background: #22c55e;
+  border-color: #86efac;
+}
+.sign-item.today {
+  border-color: #fbbf24;
+}
+.sign-day {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.sign-item.checked .sign-day, .sign-item.today .sign-day {
+  color: #fff;
+  font-weight: bold;
+}
+.sign-reward {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fbbf24;
+}
+.sign-item.checked .sign-reward {
+  color: #fff;
+}
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #334155;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  transition: width 0.3s;
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  max-width: 400px;
+  width: 100%;
+  margin: 20px 0;
+}
+.skin-card {
+  background: #334155;
+  border-radius: 12px;
+  padding: 15px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #475569;
+  cursor: pointer;
+}
+.skin-card.unlocked {
+  border-color: #22c55e;
+}
+.skin-card.using {
+  border-color: #fbbf24;
+  background: #1e40af;
+}
+.skin-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #475569;
+}
+.skin-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+}
+.skin-price {
+  font-size: 12px;
+  color: #fbbf24;
+}
+.tab-group {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+.tab-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  background: #334155;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #22c55e;
+}
+.achievement-list {
+  max-width: 400px;
+  width: 100%;
+  margin: 20px 0;
+}
+.achievement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 15px;
+  background: #334155;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.achievement-info {
+  flex: 1;
+}
+.achievement-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+.achievement-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.achievement-reward {
+  font-size: 14px;
+  color: #fbbf24;
+  margin-left: 10px;
+}
+.achievement-item.finished {
+  background: #166534;
+  border: 1px solid #22c55e;
+}
+.float-tip {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  background: rgba(34, 197, 94, 0.9);
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  z-index: 99999;
+  pointer-events: none;
+  animation: floatTip 2s ease forwards;
+}
+@keyframes floatTip {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+@media (max-width: 400px) {
+  .title {
+    font-size: 36px;
+  }
+  .btn {
+    width: 220px;
+    height: 55px;
+    font-size: 18px;
+  }
+  .level-grid {
+    gap: 8px;
+  }
+  .sign-list {
+    gap: 5px;
+  }
+}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #111;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      touch-action: none;
-      min-height: 100vh;
-      min-height: 100dvh;
-      padding: calc(10px * var(--scale)) 0;
-      padding-top: max(calc(10px * var(--scale)), var(--safe-top));
-      padding-bottom: max(calc(10px * var(--scale)), var(--safe-bottom));
-      width: 100%;
-      overflow-x: hidden;
-    }
-    .screen { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: calc(20px * var(--scale)); 
-      padding: calc(20px * var(--scale)); 
-      width: 100%;
-      max-width: calc(var(--base-width) * 1.2);
-    }
-    .hidden { display: none !important; }
-    .menu-title { 
-      font-size: calc(36px * var(--scale)); 
-      color: #4CAF50; 
-      text-align: center;
-    }
-    .mode-btn {
-      width: calc(220px * var(--scale)); 
-      height: calc(80px * var(--scale)); 
-      border-radius: calc(16px * var(--scale)); 
-      border: none;
-      font-size: calc(24px * var(--scale)); 
-      font-weight: bold; 
-      color: white;
-      cursor: pointer; 
-      transition: all 0.2s;
-    }
-    .mode-btn.levels { background: #4CAF50; }
-    .mode-btn.special { background: #64B5F6; }
-    .mode-btn.locked { background: #555; opacity: 0.6; cursor: default; }
-    .mode-btn.checked { background: #999; opacity: 0.7; cursor: default; }
-    .level-grid {
-      display: flex; 
-      gap: calc(12px * var(--scale)); 
-      flex-wrap: wrap;
-      justify-content: center; 
-      margin: calc(10px * var(--scale)) 0 calc(20px * var(--scale));
-      width: 100%;
-    }
-    .level-block {
-      width: calc(80px * var(--scale)); 
-      height: calc(80px * var(--scale)); 
-      border-radius: calc(12px * var(--scale));
-      background: #333; 
-      border: calc(2px * var(--scale)) solid #444;
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      font-size: calc(18px * var(--scale)); 
-      font-weight: bold; 
-      color: #fff;
-      cursor: pointer; 
-      text-align: center; 
-      line-height: 1.2;
-    }
-    .level-block.active { background: #4CAF50; border-color: #8BC34A; }
-    .level-block.tutorial { background: #2196F3; border-color: #03A9F3; }
-    .level-block.locked { background: #222; border-color: #333; color: #555; cursor: default; }
-    .menu-btn {
-      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
-      font-size: calc(18px * var(--scale)); 
-      border-radius: calc(12px * var(--scale));
-      border: none; 
-      background: #333; 
-      color: white; 
-      min-width: calc(180px * var(--scale));
-      cursor: pointer; 
-      transition: all 0.2s;
-    }
-    .menu-btn.primary { background: #4CAF50; }
-    .menu-btn.warning { background: #FF9800; }
-    .menu-btn:active { transform: scale(0.98); }
-    .lang-group { 
-      display: flex; 
-      gap: calc(10px * var(--scale)); 
-      margin-top: calc(10px * var(--scale)); 
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .lang-btn {
-      padding: calc(8px * var(--scale)) calc(16px * var(--scale)); 
-      border-radius: calc(8px * var(--scale)); 
-      border: none;
-      background: #555; 
-      color: white; 
-      font-size: calc(16px * var(--scale)); 
-      cursor: pointer;
-    }
-    .lang-btn.active { background: #4CAF50; }
-    .score-row { 
-      display: flex; 
-      align-items: center; 
-      gap: calc(12px * var(--scale)); 
-      margin-bottom: calc(10px * var(--scale)); 
-      flex-wrap: wrap; 
-      justify-content: center;
-      width: 100%;
-    }
-    #score { font-size: calc(24px * var(--scale)); }
-    #timer { font-size: calc(24px * var(--scale)); color: #FFEB3B; margin-left: calc(10px * var(--scale)); }
-    #goldCount { font-size: calc(24px * var(--scale)); color: #FFD700; }
-    #pause-btn {
-      width: calc(48px * var(--scale)); 
-      height: calc(48px * var(--scale)); 
-      border-radius: 50%;
-      background: #333; 
-      border: calc(2px * var(--scale)) solid #666;
-      box-shadow: 0 calc(2px * var(--scale)) calc(4px * var(--scale)) rgba(0,0,0,0.3);
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      font-size: calc(20px * var(--scale)); 
-      color: #fff; 
-      cursor: pointer; 
-      transition: all 0.2s;
-    }
-    #game-board {
-      background: #222; 
-      display: grid; 
-      gap: calc(1px * var(--scale));
-      border: calc(2px * var(--scale)) solid #444; 
-      position: relative;
-      grid-template-columns: repeat(20, var(--cell-size));
-      grid-template-rows: repeat(20, var(--cell-size));
-    }
-    #game-board.tutorial {
-      background-image: linear-gradient(#333 calc(1px * var(--scale)), transparent calc(1px * var(--scale))),
-                        linear-gradient(90deg, #333 calc(1px * var(--scale)), transparent calc(1px * var(--scale)));
-      background-size: var(--cell-size) var(--cell-size);
-    }
-    .tutorial-text {
-      position: absolute; 
-      top: calc(10px * var(--scale)); 
-      left: calc(10px * var(--scale));
-      color: #f44336; 
-      font-size: calc(14px * var(--scale)); 
-      font-weight: bold;
-      line-height: 1.4; 
-      text-shadow: 0 0 calc(2px * var(--scale)) #000; 
-      z-index: 10;
-      max-width: 90%;
-    }
-    #tips { 
-      margin-top: calc(10px * var(--scale)); 
-      color: #888; 
-      text-align: center; 
-      font-size: calc(14px * var(--scale));
-      padding: 0 calc(10px * var(--scale));
-    }
-    .modal {
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%;
-      background: rgba(0,0,0,0.95); 
-      display: flex; 
-      flex-direction: column;
-      align-items: center; 
-      justify-content: center; 
-      z-index: 999;
-      padding: calc(20px * var(--scale));
-      padding-top: max(calc(20px * var(--scale)), var(--safe-top));
-      padding-bottom: max(calc(20px * var(--scale)), var(--safe-bottom));
-    }
-    .device-btn, .skip-btn {
-      font-size: calc(22px * var(--scale)); 
-      padding: calc(14px * var(--scale)) calc(28px * var(--scale)); 
-      margin: calc(10px * var(--scale));
-      border-radius: calc(12px * var(--scale)); 
-      border: none; 
-      background: #4CAF50;
-      color: white; 
-      cursor: pointer;
-    }
-    .notice { 
-      font-size: calc(14px * var(--scale)); 
-      color: #FFEB3B; 
-      margin-top: calc(15px * var(--scale)); 
-      max-width: calc(300px * var(--scale)); 
-      text-align: center; 
-      line-height: 1.4; 
-    }
-    .victory-text { 
-      font-size: calc(50px * var(--scale)); 
-      color: #FFEB3B; 
-      text-shadow: 0 0 calc(15px * var(--scale)) #FFEB3B; 
-      margin-bottom: calc(20px * var(--scale));
-      text-align: center;
-    }
-    .gameover-text { 
-      font-size: calc(50px * var(--scale)); 
-      color: #F44336; 
-      text-shadow: 0 0 calc(15px * var(--scale)) #F44336; 
-      margin-bottom: calc(20px * var(--scale));
-      text-align: center;
-    }
-    .countdown { 
-      font-size: calc(80px * var(--scale)); 
-      color: #4CAF50; 
-      font-weight: bold; 
-      animation: flash 0.6s infinite alternate; 
-    }
-    .stage-title { 
-      font-size: calc(36px * var(--scale)); 
-      color: #FFEB3B; 
-      margin-bottom: calc(20px * var(--scale)); 
-      font-weight: bold;
-      text-align: center;
-    }
-    .sign-title { 
-      font-size: calc(32px * var(--scale)); 
-      color: #FFD700; 
-      margin-bottom: calc(20px * var(--scale)); 
-      font-weight: bold;
-      text-align: center;
-    }
-    .sign-desc { 
-      font-size: calc(18px * var(--scale)); 
-      color: #fff; 
-      margin-bottom: calc(20px * var(--scale)); 
-      text-align: center; 
-      max-width: 90%;
-    }
-    .sign-list { 
-      display: grid; 
-      grid-template-columns: repeat(7, 1fr); 
-      gap: calc(10px * var(--scale)); 
-      margin-bottom: calc(25px * var(--scale)); 
-      max-width: calc(600px * var(--scale)); 
-      width: 100%; 
-    }
-    .sign-item {
-      background: #333; 
-      border-radius: calc(8px * var(--scale)); 
-      padding: calc(10px * var(--scale)) calc(5px * var(--scale));
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: calc(5px * var(--scale));
-      border: calc(2px * var(--scale)) solid #444;
-    }
-    .sign-item.checked { background: #4CAF50; border-color: #8BC34A; }
-    .sign-item.today { border-color: #FFD700; }
-    .sign-day { font-size: calc(14px * var(--scale)); color: #aaa; }
-    .sign-item.checked .sign-day { color: #fff; }
-    .sign-item.today .sign-day { color: #FFD700; font-weight: bold; }
-    .sign-reward { font-size: calc(16px * var(--scale)); font-weight: bold; color: #FFD700; }
-    .sign-item.checked .sign-reward { color: #fff; }
-    .sign-progress { 
-      width: 100%; 
-      max-width: calc(600px * var(--scale)); 
-      margin-bottom: calc(20px * var(--scale)); 
-    }
-    .progress-bar { 
-      width: 100%; 
-      height: calc(12px * var(--scale)); 
-      background: #333; 
-      border-radius: calc(6px * var(--scale)); 
-      overflow: hidden; 
-      margin-bottom: calc(10px * var(--scale)); 
-    }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); transition: width 0.3s; }
-    .progress-text { font-size: calc(16px * var(--scale)); color: #fff; text-align: center; }
-    .reward-grid { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr 1fr; 
-      gap: calc(15px * var(--scale)); 
-      width: 100%; 
-      max-width: calc(600px * var(--scale)); 
-      margin-bottom: calc(25px * var(--scale)); 
-    }
-    .reward-card {
-      background: #333; 
-      border-radius: calc(12px * var(--scale)); 
-      padding: calc(15px * var(--scale)) calc(10px * var(--scale));
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: calc(8px * var(--scale));
-      border: calc(2px * var(--scale)) solid #444; 
-      text-align: center;
-    }
-    .reward-card.unlocked { border-color: #4CAF50; background: #2E7D32; }
-    .reward-day { font-size: calc(16px * var(--scale)); font-weight: bold; color: #fff; }
-    .reward-content { font-size: calc(14px * var(--scale)); color: #FFD700; }
-    .reward-card.unlocked .reward-content { color: #fff; }
-    @keyframes flash { from { opacity: 0.4; } to { opacity: 1; } }
-    .final-score { 
-      font-size: calc(28px * var(--scale)); 
-      margin-bottom: calc(20px * var(--scale));
-      text-align: center;
-    }
-    .restart-btn {
-      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
-      border: none; 
-      border-radius: calc(50px * var(--scale));
-      background: #2196F3; 
-      color: white; 
-      font-size: calc(16px * var(--scale)); 
-      cursor: pointer;
-      margin: calc(5px * var(--scale));
-    }
-    .back-btn {
-      padding: calc(12px * var(--scale)) calc(24px * var(--scale)); 
-      border: none; 
-      border-radius: calc(50px * var(--scale));
-      background: #666; 
-      color: white; 
-      font-size: calc(16px * var(--scale)); 
-      cursor: pointer;
-      margin: calc(5px * var(--scale));
-    }
-    .star-row { 
-      display: flex; 
-      gap: calc(10px * var(--scale)); 
-      margin: calc(5px * var(--scale)) 0; 
-    }
-    .star { font-size: calc(24px * var(--scale)); color: #ccc; }
-    .star.active { color: #FFEB3B; }
-    .obstacle {
-      background-color: #E53935 !important;
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      color: #FFD600; 
-      font-size: calc(12px * var(--scale)); 
-      font-weight: bold;
-    }
-
-    @media (max-width: 500px) and (orientation: portrait) {
-      .level-grid { gap: calc(8px * var(--scale)); }
-      .sign-list { gap: calc(6px * var(--scale)); }
-      .reward-grid { gap: calc(10px * var(--scale)); }
-    }
-  </style>
 </head>
 <body>
-<div id="mainMenu" class="screen">
-  <h1 class="menu-title">Snake Game</h1>
-  <div class="score-row">
-    <span id="goldCount">💰 0</span>
+  <div class="canvas-wrap">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="pauseBtn" class="btn btn-gray btn-small hidden">暂停</button>
   </div>
-  <button class="menu-btn primary" id="startBtn">Start Game</button>
-  <button class="menu-btn warning" id="signBtn">Daily Check-in</button>
-  <div class="lang-group">
-    <button class="lang-btn active" id="btn-en">English</button>
-    <button class="lang-btn" id="btn-cn">中文</button>
-  </div>
-</div>
 
-<div id="modeSelect" class="screen hidden">
-  <h1 class="menu-title">Select Mode</h1>
-  <button class="mode-btn levels" id="modeLevels">Levels</button>
-  <button class="mode-btn special locked" id="modeSpecial">Special</button>
-  <button class="menu-btn" id="backFromMode">Back</button>
-</div>
-
-<div id="levelSelect" class="screen hidden">
-  <h1 class="menu-title">Select Level</h1>
-  <div class="level-grid" id="levelGrid">
-    <div class="level-block tutorial" id="level-tutorial">T</div>
-    <div class="level-block locked" id="level-1">1</div>
-    <div class="level-block locked" id="level-2">2</div>
-    <div class="level-block locked" id="level-3">3</div>
-    <div class="level-block locked" id="level-4">4</div>
-    <div class="level-block locked coming-soon"></div>
-  </div>
-  <button class="menu-btn" id="backFromLevels">Back</button>
-</div>
-
-<div id="specialSelect" class="screen hidden">
-  <h1 class="menu-title">Special</h1>
-  <div class="level-grid" id="specialGrid">
-    <div class="level-block active" id="special1">S1</div>
-    <div class="level-block active" id="special2">S2</div>
-    <div class="level-block locked coming-soon"></div>
-    <div class="level-block locked coming-soon"></div>
-    <div class="level-block locked coming-soon"></div>
-    <div class="level-block locked coming-soon"></div>
-  </div>
-  <button class="menu-btn" id="backFromSpecial">Back</button>
-</div>
-
-<div id="signModal" class="modal hidden">
-  <h2 class="sign-title">Daily Check-in</h2>
-  <p class="sign-desc" id="signDesc">Check in every day to get gold coins!</p>
-  <div class="sign-progress">
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  <div id="homeScreen" class="screen">
+    <h1 class="title">贪吃蛇大作战</h1>
+    <div class="info-row">
+      <span class="info-text gold-text" id="homeGold">💰 0</span>
+      <span class="info-text" id="homeHighScore">最高分: 0</span>
     </div>
-    <p class="progress-text" id="progressText">Total Check-in: 0 days</p>
-  </div>
-  <div class="reward-grid">
-    <div class="reward-card" id="reward7">
-      <div class="reward-day">7 Days</div>
-      <div class="reward-content">5000 Coins</div>
-    </div>
-    <div class="reward-card" id="reward30">
-      <div class="reward-day">30 Days</div>
-      <div class="reward-content">20000 Coins</div>
-    </div>
-    <div class="reward-card" id="reward50">
-      <div class="reward-day">50 Days</div>
-      <div class="reward-content">Limited Skin</div>
+    <button class="btn btn-primary" id="startGameBtn">开始游戏</button>
+    <div class="btn-group">
+      <button class="btn btn-warning btn-small" id="signBtn">每日签到</button>
+      <button class="btn btn-warning btn-small" id="shopBtn">皮肤商店</button>
+      <button class="btn btn-warning btn-small" id="achievementBtn">成就</button>
+      <button class="btn btn-warning btn-small" id="rankBtn">排行榜</button>
     </div>
   </div>
-  <div class="sign-list" id="signList"></div>
-  <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-    <button class="menu-btn primary" id="doSignBtn">Check in Today</button>
-    <button class="menu-btn" id="closeSignBtn">Close</button>
-  </div>
-</div>
 
-<div class="score-row hidden" id="scoreRow">
-  <div id="score">Score: 0</div>
-  <div id="timer">Time: 0</div>
-  <button id="pause-btn">⏸</button>
-</div>
-<div id="game-board" class="hidden"></div>
-<div id="tips" class="hidden">PC: ↑↓←→ | Space=Pause | Mobile: Swipe</div>
+  <div id="modeSelectScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">选择模式</h1>
+    <button class="btn btn-primary" id="normalModeBtn">普通关卡模式</button>
+    <button class="btn btn-secondary" id="specialModeBtn">特殊挑战模式</button>
+    <button class="btn btn-gray" id="backFromMode">返回主页</button>
+  </div>
+
+  <div id="levelScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">普通关卡</h1>
+    <div class="level-grid" id="levelGrid"></div>
+    <button class="btn btn-gray" id="backFromLevel">返回模式选择</button>
+  </div>
+
+  <div id="specialScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">特殊挑战</h1>
+    <div class="level-grid">
+      <div class="level-block" id="s1Btn">S1</div>
+      <div class="level-block" id="s2Btn">S2</div>
+    </div>
+    <p class="modal-desc">S1: 3阶段计时闯关 | S2: 无限加速冲分</p>
+    <button class="btn btn-gray" id="backFromSpecial">返回模式选择</button>
+  </div>
+
+  <div id="tutorialModal" class="modal hidden">
+    <div class="modal-box">
+      <h2 class="modal-title" style="color: #3b82f6;">操作说明</h2>
+      <div class="modal-desc" style="text-align: left;">
+        <p>📱 触屏操作：滑动屏幕控制蛇的移动方向</p>
+        <p>⌨️ 键盘：方向键/WASD 移动，空格暂停</p>
+        <p>🍎 吃食物加分加金币，撞墙撞自己失败</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="startWithTutorial">开始游戏</button>
+        <button class="btn btn-gray" id="skipTutorial">跳过关卡</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="signModal" class="modal hidden">
+    <div class="modal-box">
+      <h2 class="modal-title" style="color: #fbbf24; font-size: 28px;">每日签到</h2>
+      <p class="modal-desc">每日签到领金币，累计天数领奖励！</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="signProgress" style="width: 0%"></div>
+      </div>
+      <p class="info-text" style="font-size: 14px;" id="signTotal">累计签到: 0 天</p>
+      <div class="sign-list" id="signList"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="doSignBtn">今日签到</button>
+        <button class="btn btn-gray" id="closeSignBtn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shopScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">皮肤商店</h1>
+    <div class="info-row">
+      <span class="info-text gold-text" id="shopGold">💰 0</span>
+    </div>
+    <div class="tab-group">
+      <button class="tab-btn active" data-tab="head">蛇头</button>
+      <button class="tab-btn" data-tab="body">身体</button>
+      <button class="tab-btn" data-tab="tail">蛇尾</button>
+    </div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <button class="btn btn-gray" id="backFromShop">返回主页</button>
+  </div>
+
+  <div id="achievementScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">成就系统</h1>
+    <div class="achievement-list" id="achievementList"></div>
+    <button class="btn btn-gray" id="backFromAchievement">返回主页</button>
+  </div>
+
+  <div id="rankScreen" class="screen hidden">
+    <h1 class="title" style="font-size: 36px;">好友排行榜</h1>
+    <div class="achievement-list" id="rankList">
+      <div class="achievement-item">
+        <div class="achievement-info">
+          <div class="achievement-name">1. 您</div>
+          <div class="achievement-desc">S2模式最高分</div>
+        </div>
+        <span class="achievement-reward" id="rankMyScore">0</span>
+      </div>
+    </div>
+    <button class="btn btn-gray" id="backFromRank">返回主页</button>
+  </div>
+
+  <div id="settleModal" class="modal hidden">
+    <div class="modal-box">
+      <h2 class="modal-title" id="settleTitle">游戏结束</h2>
+      <p class="modal-desc" id="settleDesc">本局得分: 0</p>
+      <p class="modal-desc gold-text" id="settleGold">本局获得金币: 0</p>
+      <div class="btn-group">
+        <button class="btn btn-warning" id="doubleBtn">看广告 奖励翻倍</button>
+        <button class="btn btn-primary" id="confirmBtn">领取奖励</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-small" id="nextLevelBtn" style="display:none;">下一关</button>
+        <button class="btn btn-secondary btn-small" id="restartBtn">再来一局</button>
+        <button class="btn btn-gray btn-small" id="homeBtn">返回主页</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-  const gameBoard = document.getElementById('game-board');
-  const scoreRow = document.getElementById('scoreRow');
-  const scoreElement = document.getElementById('score');
-  const timerElement = document.getElementById('timer');
-  const pauseBtn = document.getElementById('pause-btn');
-  const tips = document.getElementById('tips');
-  const btnEn = document.getElementById('btn-en');
-  const btnCn = document.getElementById('btn-cn');
-  const startBtn = document.getElementById('startBtn');
-  const mainMenu = document.getElementById('mainMenu');
-  const modeSelect = document.getElementById('modeSelect');
-  const modeLevels = document.getElementById('modeLevels');
-  const modeSpecial = document.getElementById('modeSpecial');
-  const backFromMode = document.getElementById('backFromMode');
-  const levelSelect = document.getElementById('levelSelect');
-  const backFromLevels = document.getElementById('backFromLevels');
-  const specialSelect = document.getElementById('specialSelect');
-  const backFromSpecial = document.getElementById('backFromSpecial');
-  const levelTutorial = document.getElementById('level-tutorial');
-  const level1 = document.getElementById('level-1');
-  const level2 = document.getElementById('level-2');
-  const level3 = document.getElementById('level-3');
-  const level4 = document.getElementById('level-4');
-  const special1 = document.getElementById('special1');
-  const special2 = document.getElementById('special2');
-  const comingSoonElements = document.querySelectorAll('.coming-soon');
-  const signBtn = document.getElementById('signBtn');
+window.onload = function() {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const pauseBtn = document.getElementById('pauseBtn');
+
+  const homeScreen = document.getElementById('homeScreen');
+  const modeSelectScreen = document.getElementById('modeSelectScreen');
+  const levelScreen = document.getElementById('levelScreen');
+  const specialScreen = document.getElementById('specialScreen');
+  const shopScreen = document.getElementById('shopScreen');
+  const achievementScreen = document.getElementById('achievementScreen');
+  const rankScreen = document.getElementById('rankScreen');
   const signModal = document.getElementById('signModal');
+  const settleModal = document.getElementById('settleModal');
+  const tutorialModal = document.getElementById('tutorialModal');
+
+  const startGameBtn = document.getElementById('startGameBtn');
+  const normalModeBtn = document.getElementById('normalModeBtn');
+  const specialModeBtn = document.getElementById('specialModeBtn');
+  const backFromMode = document.getElementById('backFromMode');
+  const backFromLevel = document.getElementById('backFromLevel');
+  const backFromSpecial = document.getElementById('backFromSpecial');
+  const s1Btn = document.getElementById('s1Btn');
+  const s2Btn = document.getElementById('s2Btn');
+  const signBtn = document.getElementById('signBtn');
+  const shopBtn = document.getElementById('shopBtn');
+  const achievementBtn = document.getElementById('achievementBtn');
+  const rankBtn = document.getElementById('rankBtn');
   const doSignBtn = document.getElementById('doSignBtn');
   const closeSignBtn = document.getElementById('closeSignBtn');
-  const signList = document.getElementById('signList');
-  const progressFill = document.getElementById('progressFill');
-  const progressText = document.getElementById('progressText');
-  const goldCount = document.getElementById('goldCount');
-  const reward7 = document.getElementById('reward7');
-  const reward30 = document.getElementById('reward30');
-  const reward50 = document.getElementById('reward50');
+  const doubleBtn = document.getElementById('doubleBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const nextLevelBtn = document.getElementById('nextLevelBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const homeBtn = document.getElementById('homeBtn');
+  const backFromShop = document.getElementById('backFromShop');
+  const backFromAchievement = document.getElementById('backFromAchievement');
+  const backFromRank = document.getElementById('backFromRank');
+  const levelGrid = document.getElementById('levelGrid');
+  const shopGrid = document.getElementById('shopGrid');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const startWithTutorial = document.getElementById('startWithTutorial');
+  const skipTutorial = document.getElementById('skipTutorial');
 
-  let hasDoneTutorial = localStorage.getItem('hasDoneTutorial') === 'true';
-  let unlockedLevel2 = localStorage.getItem('unlockedLevel2') === 'true';
-  let unlockedLevel3 = localStorage.getItem('unlockedLevel3') === 'true';
-  let unlockedLevel4 = localStorage.getItem('unlockedLevel4') === 'true';
-  let savedLevel = parseInt(localStorage.getItem('savedLevel')) || 0;
-  let isSpecialMode = false;
-  let specialStage = 1;
-  let specialUnlockStage3 = localStorage.getItem('specialUnlockStage3') === 'true';
-  let specialStar1 = localStorage.getItem('specialStar1') === 'true';
-  let specialStar2 = localStorage.getItem('specialStar2') === 'true';
-  let specialHighscore = parseInt(localStorage.getItem('specialHighscore') || 0);
-  let specialTimeLeft = 0;
-  let specialTimer;
-
-  let isS2Mode = false;
-  const S2_BASE_SPEED = 230;
-  const S2_MIN_SPEED = 80;
-  const S2_SPEED_STEP = 10;
-  let special2Highscore = parseInt(localStorage.getItem('special2Highscore') || 0);
-
-  let userGold = parseInt(localStorage.getItem('userGold') || 0);
-  let totalSignDays = parseInt(localStorage.getItem('totalSignDays') || 0);
-  let lastSignDate = localStorage.getItem('lastSignDate') || '';
-  let unlockedReward7 = localStorage.getItem('unlockedReward7') === 'true';
-  let unlockedReward30 = localStorage.getItem('unlockedReward30') === 'true';
-  let unlockedReward50 = localStorage.getItem('unlockedReward50') === 'true';
-  const DAILY_GOLD = 1000;
-  const today = new Date().toISOString().split('T')[0];
-
-  let lang = 'en';
-  let mode = null;
-  let level = savedLevel;
-  let gridSize = 20;
-  let speed = 280;
-  let baseSpeed = 280;
-  let score = 0;
-  let snake, food, direction;
-  let gameLoop;
-  let isGameStarted = false;
+  const GRID_SIZE = 20;
+  const CELL_SIZE = canvas.width / GRID_SIZE;
+  let gameMode = 'none';
+  let currentLevel = 0;
+  let currentSpecial = 0;
+  let isGameRunning = false;
   let isPaused = false;
-  let touchStartX = 0, touchStartY = 0;
+  let gameLoop = null;
+  let gameTimer = null;
+  let countdownTimer = null;
+  let pendingGameStart = null;
 
-  const STAGE1_TIME = 40;
-  const STAGE1_SCORE = 80;
-  const STAGE2_TIME = 60;
-  const STAGE2_SCORE = 140;
-  const STAGE3_TIME = 90;
-  const LEVEL1_PASS = 150;
-  const LEVEL2_PASS = 150;
-  const LEVEL3_PASS = 150;
-  const LEVEL4_PASS = 150;
-  const TUTORIAL_PASS = 40;
-
-  const level4Obstacles = [
-    {x:2, y:2}, {x:2, y:17},
-    {x:17, y:2}, {x:17, y:17},
-    {x:4, y:4}, {x:15, y:15}
-  ];
-
-  const langText = {
-    cn: {
-      start:'开始游戏',selectLevel:'选择关卡',back:'返回',tutorial:'教学关',
-      level1:'第一关',level2:'第二关',level3:'第三关',level4:'第四关',
-      chooseDevice:'选择操作方式',keyboard:'键盘',mobile:'触屏',
-      keyboardGuide:'使用 ↑ ↓ ← → 移动',mobileGuide:'滑动屏幕移动',
-      ok:'确定',goal:'目标：吃掉食物',notice:'注意：碰墙/碰自己即失败',
-      speedNotice:'注意：吃到食物后速度会加快',
-      obstacleNotice:'注意：红色障碍物不可触碰！',
-      specialGoal1:'阶段1：短时间内尽可能吃更多食物\n达标：80 分',
-      specialGoal2:'阶段2：短时间内尽可能吃更多食物\n达标：140 分',
-      specialGoal3:'最终阶段：全力冲刺最高分！',
-      special2Goal:'无限模式：每吃一个食物速度加快\n无时间限制，冲刺最高分！',
-      stageStart:'即将进入 阶段',
-      tabletNotice:'平板用户可在游玩中随意切换操作方式',
-      skipTutorial:'是否跳过教学关？',gameOver:'游戏结束',
-      tutorialComplete:'教学完成！',victory:'恭喜过关！',finalWin:'你赢了！',
-      perfect:'完美通关！',score:'分数',nextLevel:'即将进入下一关',playAgain:'重新开始',
-      backToMenu:'回到主页',
-      tips:'电脑: ↑↓←→ 移动 | 空格暂停 | 手机: 滑动移动 | 点圆圈暂停',
-      selectMode:'选择模式',levels:'普通关卡',special:'特殊玩法',
-      special1:'特殊1',special2:'特殊2',time:'时间',stage:'阶段',target:'目标',
-      signTitle:'每日签到',signDesc:'每日签到领取金币，累计天数解锁限定奖励！',
-      checkInToday:'今日签到',close:'关闭',totalSign:'累计签到：{num} 天',
-      day:'第{num}天',reward7:'7天',reward30:'30天',reward50:'50天',
-      reward7Content:'5000金币',reward30Content:'20000金币',reward50Content:'限定皮肤',
-      checked:'已签到',today:'今日',unlocked:'已解锁',highScore:'历史最高分'
-    },
-    en: {
-      start:'Start Game',selectLevel:'Select Level',back:'Back',tutorial:'Tutorial',
-      level1:'Level 1',level2:'Level 2',level3:'Level 3',level4:'Level 4',
-      chooseDevice:'Choose Control',keyboard:'Keyboard',mobile:'Touch',
-      keyboardGuide:'Use ↑ ↓ ← → to move',mobileGuide:'Swipe to move',
-      ok:'OK',goal:'Goal: Eat food',notice:'Notice: Die if hit wall/self',
-      speedNotice:'Notice: Speed increases when eating food',
-      obstacleNotice:'Notice: Avoid red obstacles!',
-      specialGoal1:'Stage 1: Eat as much as possible quickly\nTarget: 80',
-      specialGoal2:'Stage 2: Eat as much as possible quickly\nTarget: 140',
-      specialGoal3:'Final Stage: Get the highest score!',
-      special2Goal:'Endless Mode: Speed up with every food\nNo time limit, beat your high score!',
-      stageStart:'Entering Stage',
-      tabletNotice:'Tablet users can switch control anytime',
-      skipTutorial:'Skip tutorial?',gameOver:'Game Over',
-      tutorialComplete:'Tutorial Complete!',victory:'Victory!',finalWin:'You Win!',
-      perfect:'Perfect!',score:'Score',nextLevel:'Next Level Soon',playAgain:'Play Again',
-      backToMenu:'Back to Menu',
-      tips:'PC: ↑↓←→ | Space=Pause | Mobile: Swipe | Tap circle to pause',
-      selectMode:'Select Mode',levels:'Levels',special:'Special',
-      special1:'Special 1',special2:'Special 2',time:'Time',stage:'Stage',target:'Target',
-      signTitle:'Daily Check-in',signDesc:'Check in daily for gold, unlock rewards with total days!',
-      checkInToday:'Check in Today',close:'Close',totalSign:'Total Check-in: {num} days',
-      day:'Day {num}',reward7:'7 Days',reward30:'30 Days',reward50:'50 Days',
-      reward7Content:'5000 Coins',reward30Content:'20000 Coins',reward50Content:'Limited Skin',
-      checked:'Checked',today:'Today',unlocked:'Unlocked',highScore:'High Score'
-    }
+  let playerData = {
+    gold: 0,
+    totalSignDays: 0,
+    lastSignDate: '',
+    unlockedLevels: [true, true, false, false, false, false, false, false, false, false, false, false, false],
+    passedLevels: [],
+    s2HighScore: 0,
+    unlockedSkins: { head: ['default'], body: ['default'], tail: ['default'] },
+    usingSkins: { head: 'default', body: ['default'], tail: 'default' },
+    achievements: {},
+    hasSeenTutorial: false
   };
 
-  function autoFitScreen() {
-    const root = document.documentElement;
-    const baseWidth = 400;
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+  function loadPlayerData() {
+    const saved = localStorage.getItem('snakePlayerData');
+    if (saved) playerData = JSON.parse(saved);
+    if (!playerData.passedLevels) playerData.passedLevels = [];
+    savePlayerData();
+    checkSpecialModeLock();
+  }
 
-    let maxAvailableWidth;
-    if (window.innerWidth < window.innerHeight) {
-      maxAvailableWidth = Math.min(screenWidth * 0.85, screenHeight * 0.75);
-    } else {
-      maxAvailableWidth = Math.min(screenWidth * 0.6, screenHeight * 0.8, baseWidth);
+  function savePlayerData() {
+    localStorage.setItem('snakePlayerData', JSON.stringify(playerData));
+    updateUI();
+  }
+
+  const skinConfig = {
+    head: [
+      { id: 'default', name: '经典绿头', price: 0, color: '#16a34a' },
+      { id: 'red', name: '火焰红头', price: 5000, color: '#dc2626' },
+      { id: 'blue', name: '深海蓝头', price: 5000, color: '#2563eb' },
+      { id: 'gold', name: '黄金龙头', price: 20000, color: '#fbbf24' }
+    ],
+    body: [
+      { id: 'default', name: '经典绿身', price: 0, color: '#22c55e' },
+      { id: 'red', name: '火焰红身', price: 3000, color: '#ef4444' },
+      { id: 'blue', name: '深海蓝身', price: 3000, color: '#3b82f6' },
+      { id: 'gold', name: '黄金身', price: 10000, color: '#fbbf24' },
+      { id: 'pink', name: '樱花粉身', price: 10000, color: '#ec4899' }
+    ],
+    tail: [
+      { id: 'default', name: '经典绿尾', price: 0, color: '#15803d' },
+      { id: 'red', name: '火焰红尾', price: 3000, color: '#b91c1c' },
+      { id: 'blue', name: '深海蓝尾', price: 3000, color: '#1d4ed8' },
+      { id: 'gold', name: '黄金尾', price: 10000, color: '#d97706' }
+    ]
+  };
+
+  const levelConfig = [
+    { id: 0, name: '教学关', target: 40, baseSpeed: 250, obstacles: [], tip: '教学关：熟悉基础操作' },
+    { id: 1, name: '第一关', target: 150, baseSpeed: 180, obstacles: [], tip: '经典模式，无特殊规则' },
+    { id: 2, name: '第二关', target: 150, baseSpeed: 190, speedUp: true, tip: '每吃一个食物速度加快' },
+    { id: 3, name: '第三关', target: 150, baseSpeed: 200, foodMove: true, tip: '食物会逃跑，移动更灵活' },
+    { id: 4, name: '第四关', target: 150, baseSpeed: 170, obstacles: [
+      {x:2,y:2},{x:2,y:17},{x:17,y:2},{x:17,y:17},{x:4,y:4},{x:15,y:15}
+    ], tip: '躲避固定障碍物' },
+    { id: 5, name: '第五关', target: 200, baseSpeed: 200, dynamicObstacle: true, tip: '每吃5个食物刷新障碍物' },
+    { id: 6, name: '第六关', target: 200, baseSpeed: 180, reverse: true, tip: '每吃10个食物方向反转' },
+    { id: 7, name: '第七关', target: 250, baseSpeed: 210, foodMove: true, dynamicObstacle: true, tip: '食物逃跑+动态障碍物' },
+    { id: 8, name: '第八关', target: 300, baseSpeed: 160, obstacles: [
+      {x:0,y:9},{x:0,y:10},{x:19,y:9},{x:19,y:10},{x:9,y:0},{x:10,y:0},{x:9,y:19},{x:10,y:19},
+      {x:5,y:5},{x:5,y:14},{x:14,y:5},{x:14,y:14}
+    ], speedUp: true, tip: '障碍物+加速，难度拉满' },
+    { id: 9, name: '第九关', target: 300, baseSpeed: 180, portal: true, tip: '四角传送门可穿越边界' },
+    { id: 10, name: '第十关', target: 250, baseSpeed: 200, fog: true, tip: '迷雾模式，视野受限' },
+    { id: 11, name: '第十一关', target: 350, baseSpeed: 190, mirror: true, tip: '镜像蛇同步移动，撞到即失败' },
+    { id: 12, name: '第十二关', target: 400, baseSpeed: 170, speedUp: true, foodMove: true, dynamicObstacle: true, portal: true, tip: '全机制终极挑战' }
+  ];
+
+  const achievementConfig = [
+    { id: 'first_win', name: '首次通关', desc: '通关教学关', reward:1000, condition:d=>d.passedLevels.includes(0) },
+    { id: 'level_3', name: '初出茅庐', desc: '通关前3关', reward:10000, condition:d=>d.passedLevels.includes(1)&&d.passedLevels.includes(2)&&d.passedLevels.includes(3) },
+    { id: 'level_8', name: '通关达人', desc: '通关前8关', reward:20000, condition:d=>d.passedLevels.includes(8) },
+    { id: 'level_all', name: '终极通关', desc: '通关全部12关', reward:100000, condition:d=>d.passedLevels.includes(12) },
+    { id: 's2_1000', name: '千分王者', desc: 'S2达到1000分', reward:5000, condition:d=>d.s2HighScore>=1000 },
+    { id: 'sign_7', name: '连续签到', desc: '累计签到7天', reward:5000, condition:d=>d.totalSignDays>=7 }
+  ];
+
+  const portalConfig = [
+    { id:1, x:0,y:0, target:4 }, { id:2, x:19,y:0, target:3 },
+    { id:3, x:0,y:19, target:2 }, { id:4, x:19,y:19, target:1 }
+  ];
+
+  let snake = [];
+  let mirrorSnake = [];
+  let direction = {x:1,y:0};
+  let nextDirection = {x:1,y:0};
+  let food = null;
+  let score = 0;
+  let currentSpeed = 0;
+  let gameTime = 0;
+  let currentObstacles = [];
+  let thisGameGold = 0;
+  let reverseControl = false;
+  let fogRadius = 3;
+
+  function randomInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min }
+  function showFloatTip(text){
+    const t=document.createElement('div');t.className='float-tip';t.innerText=text;
+    document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+  }
+  function checkSpecialModeLock(){
+    const ok=playerData.passedLevels.includes(1)&&playerData.passedLevels.includes(2)&&playerData.passedLevels.includes(3);
+    if(ok){s1Btn.classList.add('active');s2Btn.classList.add('active');s1Btn.classList.remove('locked');s2Btn.classList.remove('locked')}
+    else{s1Btn.classList.remove('active');s2Btn.classList.remove('active');s1Btn.classList.add('locked');s2Btn.classList.add('locked')}
+  }
+  function showScreen(el){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));el.classList.remove('hidden')}
+  function hideAllScreens(){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'))}
+
+  function updateUI(){
+    document.getElementById('homeGold').innerText=`💰 ${playerData.gold}`;
+    document.getElementById('homeHighScore').innerText=`最高分: ${playerData.s2HighScore}`;
+    document.getElementById('rankMyScore').innerText=playerData.s2HighScore;
+    document.getElementById('shopGold').innerText=`💰 ${playerData.gold}`;
+    renderLevelGrid(); renderSignList(); renderAchievementList(); renderShopGrid(currentTab); checkSpecialModeLock();
+  }
+
+  // 修复：关卡格子显示「第一关、第二关」
+  function renderLevelGrid(){
+    levelGrid.innerHTML='';
+    const tut=document.createElement('div');tut.className=`level-block tutorial ${playerData.unlockedLevels[0]?'':'locked'}`;
+    tut.innerText='教学关';tut.onclick=()=>{if(playerData.unlockedLevels[0])showTutorialAndStart('level',0)};
+    levelGrid.appendChild(tut);
+    for(let i=1;i<=12;i++){
+      const item=document.createElement('div');
+      item.className=`level-block ${playerData.unlockedLevels[i]?'active':'locked'}`;
+      item.innerText=levelConfig[i].name;
+      item.onclick=()=>{
+        if(playerData.unlockedLevels[i])showTutorialAndStart('level',i);
+        else showFloatTip('请先通关前一关解锁');
+      }
+      levelGrid.appendChild(item);
     }
+  }
 
-    const scale = Math.max(maxAvailableWidth / baseWidth, 0.5);
-    root.style.setProperty('--scale', scale);
+  function showTutorialAndStart(mode,id){
+    pendingGameStart={mode,id};
+    if(playerData.hasSeenTutorial){startGame(mode,id)}
+    else{tutorialModal.classList.remove('hidden')}
+  }
 
-    if (isGameStarted && !isPaused) {
-      draw();
+  function renderSignList(){
+    const list=document.getElementById('signList');list.innerHTML='';
+    const cycle=Math.floor(playerData.totalSignDays/7);const start=cycle*7+1;const today=new Date().toISOString().split('T')[0];
+    const signed=playerData.lastSignDate===today;
+    for(let i=0;i<7;i++){
+      const day=start+i;const checked=day<=playerData.totalSignDays;const isToday=day===playerData.totalSignDays+1&&!signed;
+      const item=document.createElement('div');
+      item.className=`sign-item ${checked?'checked':''} ${isToday?'today':''}`;
+      item.innerHTML=`<div class="sign-day">${isToday?'今日':`第${day}天`}</div><div class="sign-reward">1000</div>`;
+      list.appendChild(item);
     }
+    document.getElementById('signProgress').style.width=`${Math.min((playerData.totalSignDays/50)*100,100)}%`;
+    document.getElementById('signTotal').innerText=`累计签到: ${playerData.totalSignDays} 天`;
+    doSignBtn.disabled=signed;doSignBtn.innerText=signed?'已签到':'今日签到';
   }
 
-  window.addEventListener('load', autoFitScreen);
-  window.addEventListener('resize', autoFitScreen);
-  window.addEventListener('orientationchange', () => {
-    setTimeout(autoFitScreen, 100);
-  });
-
-  function updateGoldCount() {
-    goldCount.innerText = `💰 ${userGold}`;
-    localStorage.setItem('userGold', userGold);
-  }
-
-  function initSignSystem() {
-    renderSignList();
-    updateSignProgress();
-    updateRewardStatus();
-    const isSignedToday = lastSignDate === today;
-    doSignBtn.disabled = isSignedToday;
-    doSignBtn.classList.toggle('checked', isSignedToday);
-    doSignBtn.innerText = isSignedToday ? (lang === 'en' ? 'Checked' : '已签到') : langText[lang].checkInToday;
-  }
-
-  function renderSignList() {
-    signList.innerHTML = '';
-    const currentCycle = Math.floor(totalSignDays / 7);
-    const cycleStartDay = currentCycle * 7 + 1;
-    const todaySignDay = totalSignDays + 1;
-
-    for (let i = 0; i < 7; i++) {
-      const dayNum = cycleStartDay + i;
-      const isChecked = dayNum <= totalSignDays;
-      const isToday = dayNum === todaySignDay && lastSignDate !== today;
-      let dayText = isToday ? langText[lang].today : langText[lang].day.replace('{num}', dayNum);
-
-      const item = document.createElement('div');
-      item.className = `sign-item ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''}`;
-      item.innerHTML = `
-        <div class="sign-day">${dayText}</div>
-        <div class="sign-reward">${DAILY_GOLD}</div>
-      `;
-      signList.appendChild(item);
-    }
-  }
-
-  function updateSignProgress() {
-    const progress = Math.min((totalSignDays / 50) * 100, 100);
-    progressFill.style.width = `${progress}%`;
-    progressText.innerText = langText[lang].totalSign.replace('{num}', totalSignDays);
-  }
-
-  function updateRewardStatus() {
-    if (totalSignDays >= 7 && !unlockedReward7) {
-      unlockedReward7 = true;
-      userGold += 5000;
-      updateGoldCount();
-      localStorage.setItem('unlockedReward7', 'true');
-    }
-    if (totalSignDays >= 30 && !unlockedReward30) {
-      unlockedReward30 = true;
-      userGold += 20000;
-      updateGoldCount();
-      localStorage.setItem('unlockedReward30', 'true');
-    }
-    if (totalSignDays >= 50 && !unlockedReward50) {
-      unlockedReward50 = true;
-      localStorage.setItem('unlockedReward50', 'true');
-    }
-    reward7.classList.toggle('unlocked', unlockedReward7);
-    reward30.classList.toggle('unlocked', unlockedReward30);
-    reward50.classList.toggle('unlocked', unlockedReward50);
-    reward7.querySelector('.reward-content').innerText = unlockedReward7 ? langText[lang].unlocked : langText[lang].reward7Content;
-    reward30.querySelector('.reward-content').innerText = unlockedReward30 ? langText[lang].unlocked : langText[lang].reward30Content;
-    reward50.querySelector('.reward-content').innerText = unlockedReward50 ? langText[lang].unlocked : langText[lang].reward50Content;
-  }
-
-  function doSign() {
-    if (lastSignDate === today) return;
-    userGold += DAILY_GOLD;
-    updateGoldCount();
-    totalSignDays += 1;
-    lastSignDate = today;
-    localStorage.setItem('totalSignDays', totalSignDays);
-    localStorage.setItem('lastSignDate', lastSignDate);
-    initSignSystem();
-    alert(lang === 'en' ? `Check in success! +${DAILY_GOLD} Coins` : `签到成功！获得 ${DAILY_GOLD} 金币`);
-  }
-
-  function setLang(newLang) {
-    lang = newLang;
-    btnEn.classList.toggle('active', lang === 'en');
-    btnCn.classList.toggle('active', lang === 'cn');
-    startBtn.textContent = langText[lang].start;
-    signBtn.textContent = langText[lang].signTitle;
-    backFromMode.textContent = langText[lang].back;
-    backFromLevels.textContent = langText[lang].back;
-    backFromSpecial.textContent = langText[lang].back;
-    modeLevels.textContent = langText[lang].levels;
-    modeSpecial.textContent = langText[lang].special;
-    modeSelect.querySelector('h1').textContent = langText[lang].selectMode;
-    levelSelect.querySelector('h1').textContent = langText[lang].selectLevel;
-    specialSelect.querySelector('h1').textContent = langText[lang].special;
-    tips.textContent = langText[lang].tips;
-    document.querySelector('.sign-title').innerText = langText[lang].signTitle;
-    document.getElementById('signDesc').innerText = langText[lang].signDesc;
-    closeSignBtn.innerText = langText[lang].close;
-    reward7.querySelector('.reward-day').innerText = langText[lang].reward7;
-    reward30.querySelector('.reward-day').innerText = langText[lang].reward30;
-    reward50.querySelector('.reward-day').innerText = langText[lang].reward50;
-    initSignSystem();
-    updateComingSoonText();
-    updateScore();
-  }
-
-  function updateComingSoonText() {
-    comingSoonElements.forEach(el => {
-      el.innerText = lang === 'en' ? 'Coming Soon' : '敬请期待';
+  let currentTab='head';
+  function renderShopGrid(type){
+    shopGrid.innerHTML='';currentTab=type;
+    skinConfig[type].forEach(skin=>{
+      const unlocked=playerData.unlockedSkins[type].includes(skin.id);
+      const using=playerData.usingSkins[type]===skin.id||(type==='body'&&playerData.usingSkins.body.includes(skin.id));
+      const card=document.createElement('div');
+      card.className=`skin-card ${unlocked?'unlocked':''} ${using?'using':''}`;
+      card.innerHTML=`<div class="skin-preview" style="background:${skin.color}"></div><div class="skin-name">${skin.name}</div><div class="skin-price">${unlocked?(using?'使用中':'已解锁'):`💰 ${skin.price}`}</div>`;
+      card.onclick=()=>{
+        if(!unlocked){
+          if(playerData.gold>=skin.price){
+            playerData.gold-=skin.price;playerData.unlockedSkins[type].push(skin.id);savePlayerData();
+            showFloatTip(`解锁 ${skin.name}`);
+          }else{showFloatTip('金币不足')}
+        }else{
+          if(type==='body'){
+            if(!playerData.usingSkins.body.includes(skin.id))playerData.usingSkins.body.push(skin.id);
+            else playerData.usingSkins.body=playerData.usingSkins.body.filter(x=>x!==skin.id);
+            if(playerData.usingSkins.body.length===0)playerData.usingSkins.body.push('default');
+          }else{playerData.usingSkins[type]=skin.id}
+          savePlayerData();showFloatTip(`已使用 ${skin.name}`);
+        }
+      };shopGrid.appendChild(card);
     });
   }
 
-  function saveSpecialProgress() {
-    localStorage.setItem('specialUnlockStage3', specialUnlockStage3);
-    localStorage.setItem('specialStar1', specialStar1);
-    localStorage.setItem('specialStar2', specialStar2);
-    localStorage.setItem('specialHighscore', specialHighscore);
+  function renderAchievementList(){
+    const list=document.getElementById('achievementList');list.innerHTML='';
+    achievementConfig.forEach(ach=>{
+      const ok=ach.condition(playerData);const got=playerData.achievements[ach.id];
+      const item=document.createElement('div');item.className=`achievement-item ${got?'finished':''}`;
+      item.innerHTML=`<div class="achievement-info"><div class="achievement-name">${ach.name}</div><div class="achievement-desc">${ach.desc}</div></div><span class="achievement-reward">${got?'已领取':`💰 ${ach.reward}`}</span>`;
+      item.onclick=()=>{if(ok&&!got){playerData.gold+=ach.reward;playerData.achievements[ach.id]=true;savePlayerData();showFloatTip('领取成功')}};
+      list.appendChild(item);
+    });
   }
 
-  function restartCurrentSpecialStage() {
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    score = 0;
-    resetGame();
-    startGameLoop();
-    startSpecialTimer();
+  function doSign(){
+    const today=new Date().toISOString().split('T')[0];
+    if(playerData.lastSignDate===today)return;
+    playerData.gold+=1000;playerData.totalSignDays+=1;playerData.lastSignDate=today;savePlayerData();showFloatTip('签到成功！+1000金币');
   }
 
-  function startSpecial1() {
-    isSpecialMode = true;
-    isS2Mode = false;
-    specialStage = 1;
-    level = 0;
-    mainMenu.classList.add('hidden');
-    modeSelect.classList.add('hidden');
-    specialSelect.classList.add('hidden');
-    scoreRow.classList.remove('hidden');
-    gameBoard.classList.remove('hidden');
-    tips.classList.remove('hidden');
-    timerElement.classList.remove('hidden');
-    isGameStarted = true;
-    isPaused = false;
-    pauseBtn.innerHTML = '⏸';
-    pauseBtn.style.background = '#F44336';
-    score = 0;
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    resetGame();
-    startGameLoop();
-    startSpecialTimer();
+  // 全局清理所有定时器 —— 根治卡顿
+  function clearAllTimer() {
+    if (gameLoop) clearInterval(gameLoop);
+    if (gameTimer) clearInterval(gameTimer);
+    if (countdownTimer) clearInterval(countdownTimer);
+    gameLoop = null;
+    gameTimer = null;
+    countdownTimer = null;
   }
 
-  function startSpecial2() {
-    isSpecialMode = false;
-    isS2Mode = true;
-    level = 0;
-    mainMenu.classList.add('hidden');
-    modeSelect.classList.add('hidden');
-    specialSelect.classList.add('hidden');
-    scoreRow.classList.remove('hidden');
-    gameBoard.classList.remove('hidden');
-    tips.classList.remove('hidden');
-    timerElement.classList.add('hidden');
-    isGameStarted = true;
-    isPaused = false;
-    pauseBtn.innerHTML = '⏸';
-    pauseBtn.style.background = '#F44336';
-    score = 0;
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    resetGame();
-    startGameLoop();
-  }
-
-  function startSpecialTimer() {
-    clearInterval(specialTimer);
-    if (specialStage === 1) specialTimeLeft = STAGE1_TIME;
-    if (specialStage === 2) specialTimeLeft = STAGE2_TIME;
-    if (specialStage === 3) specialTimeLeft = STAGE3_TIME;
-    timerElement.innerText = `${langText[lang].time}: ${specialTimeLeft}`;
-    specialTimer = setInterval(() => {
-      if (isPaused || !isGameStarted) return;
-      specialTimeLeft--;
-      timerElement.innerText = `${langText[lang].time}: ${specialTimeLeft}`;
-      if (specialTimeLeft <= 0) { 
-        clearInterval(specialTimer); 
-        gameOver(); 
-      }
-    }, 1000);
-  }
-
-  function checkSpecialScore() {
-    if (specialStage === 1 && score >= STAGE1_SCORE) {
-      specialStar1 = true; 
-      specialStage = 2;
-      saveSpecialProgress(); 
-      countdownToNewStage();
-    } else if (specialStage === 2 && score >= STAGE2_SCORE) {
-      specialStar2 = true; 
-      specialUnlockStage3 = true; 
-      specialStage = 3;
-      saveSpecialProgress(); 
-      countdownToNewStage();
-    }
-  }
-
-  function countdownToNewStage() {
-    clearInterval(gameLoop); 
-    clearInterval(specialTimer);
-    isPaused = true;
-
-    const m = document.createElement('div'); 
-    m.className = 'modal';
-    m.innerHTML = `
-      <div class="stage-title">${langText[lang].stageStart} ${specialStage}</div>
-      <div class="countdown" id="cd">3</div>
-    `; 
-    document.body.appendChild(m);
-
-    let n = 3;
-    const cdElement = document.getElementById('cd');
-    const cdInterval = setInterval(() => {
-      n--;
-      if (n <= 0) {
-        clearInterval(cdInterval); 
-        document.body.removeChild(m);
-        score = 0;
-        isPaused = false;
-        resetGame(); 
-        updateScore();
-        startSpecialTimer(); 
-        startGameLoop();
-      } else { 
-        cdElement.innerText = n; 
-      }
-    }, 800);
-  }
-
-  startBtn.onclick = () => { 
-    mainMenu.classList.add('hidden'); 
-    modeSelect.classList.remove('hidden'); 
-    updateComingSoonText(); 
-    refreshLevelLock(); 
-  };
-
-  signBtn.onclick = () => {
-    signModal.classList.remove('hidden');
-    initSignSystem();
-  };
-  closeSignBtn.onclick = () => {
-    signModal.classList.add('hidden');
-  };
-  doSignBtn.onclick = doSign;
-
-  backFromMode.onclick = () => { modeSelect.classList.add('hidden'); mainMenu.classList.remove('hidden'); };
-  modeLevels.onclick = () => { modeSelect.classList.add('hidden'); levelSelect.classList.remove('hidden'); refreshLevelLock(); };
-  modeSpecial.onclick = () => {
-    if (!modeSpecial.classList.contains('locked')) {
-      modeSelect.classList.add('hidden'); specialSelect.classList.remove('hidden');
-    }
-  };
-  backFromLevels.onclick = () => { levelSelect.classList.add('hidden'); modeSelect.classList.remove('hidden'); };
-  backFromSpecial.onclick = () => { specialSelect.classList.add('hidden'); modeSelect.classList.remove('hidden'); };
-  levelTutorial.onclick = () => selectLevel(0);
-  level1.onclick = () => { if (hasDoneTutorial) selectLevel(1); };
-  level2.onclick = () => { if (unlockedLevel2) selectLevel(2); };
-  level3.onclick = () => { if (unlockedLevel3) selectLevel(3); };
-  level4.onclick = () => { if (unlockedLevel4) selectLevel(4); };
-  special1.onclick = startSpecial1;
-  special2.onclick = startSpecial2;
-
-  function selectLevel(lv) {
-    isSpecialMode = false;
-    isS2Mode = false;
-    clearInterval(specialTimer);
-    level = lv;
-    localStorage.setItem('savedLevel', level);
-    score = 0;
-    timerElement.classList.remove('hidden');
-    if (level === 0) { askSkipTutorial(); } else { startGame(); }
-  }
-
-  function askSkipTutorial() {
-    const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = `
-      <div style="font-size:calc(28px * var(--scale)); color:#fff; margin-bottom:calc(20px * var(--scale)); text-align:center;">${langText[lang].skipTutorial}</div>
-      <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
-        <button class="skip-btn" id="skip-yes">${lang === 'en' ? 'Yes' : '是'}</button>
-        <button class="skip-btn" id="skip-no">${lang === 'en' ? 'No' : '否'}</button>
-      </div>
-    `;
-    document.body.appendChild(m);
-    m.querySelector('#skip-yes').onclick = () => {
-      hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial', 'true');
-      document.body.removeChild(m); refreshLevelLock(); selectLevel(1);
-    };
-    m.querySelector('#skip-no').onclick = () => { document.body.removeChild(m); chooseDevice(); };
-  }
-
-  function chooseDevice() {
-    const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = `
-      <div style="font-size:calc(30px * var(--scale)); margin-bottom:calc(10px * var(--scale)); color:#fff; text-align:center;">${langText[lang].chooseDevice}</div>
-      <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
-        <button class="device-btn" id="kb">${langText[lang].keyboard}</button>
-        <button class="device-btn" id="tb">${langText[lang].mobile}</button>
-      </div>
-      <div class="notice">${langText[lang].tabletNotice}</div>
-    `;
-    document.body.appendChild(m);
-    m.querySelector('#kb').onclick = () => { mode='keyboard'; document.body.removeChild(m); showKeyboardGuide(); };
-    m.querySelector('#tb').onclick = () => { mode='touch'; document.body.removeChild(m); showTouchGuide(); };
-  }
-
-  function showKeyboardGuide() {
-    const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = `<div class="victory-text">${langText[lang].keyboard}</div><div class="final-score">${langText[lang].keyboardGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
-    document.body.appendChild(m); m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
-  }
-
-  function showTouchGuide() {
-    const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = `<div class="victory-text">${langText[lang].mobile}</div><div class="final-score">${langText[lang].mobileGuide}</div><button class="restart-btn">${langText[lang].ok}</button>`;
-    document.body.appendChild(m); m.querySelector('.restart-btn').onclick = () => { document.body.removeChild(m); startGame(); };
-  }
-
-  function startGame() {
-    isSpecialMode = false;
-    isS2Mode = false;
-    clearInterval(specialTimer);
-    mainMenu.classList.add('hidden'); levelSelect.classList.add('hidden');
-    scoreRow.classList.remove('hidden'); gameBoard.classList.remove('hidden'); tips.classList.remove('hidden');
-    timerElement.classList.remove('hidden');
-    isGameStarted = true; isPaused = false;
-    pauseBtn.innerHTML = '⏸'; pauseBtn.style.background = '#F44336';
-    score = 0;
-    clearInterval(gameLoop);
-    resetGame();
-    startGameLoop();
-  }
-
-  function resetGame() {
-    clearInterval(gameLoop); 
-    gameBoard.classList.remove('tutorial'); 
-    timerElement.innerText = '';
-    if (isSpecialMode) {
-      gridSize = 20;
-      if (specialStage === 1) baseSpeed = 230;
-      if (specialStage === 2) baseSpeed = 200;
-      if (specialStage === 3) baseSpeed = 170;
-      if (specialStage === 1) gameBoard.classList.add('tutorial');
-    } else if (isS2Mode) {
-      gridSize = 20;
-      baseSpeed = S2_BASE_SPEED;
-      gameBoard.classList.add('tutorial');
-    } else if (level === 0) { 
-      gridSize = 20; baseSpeed = 280; gameBoard.classList.add('tutorial');
-    } else if (level === 1) { 
-      gridSize = 20; baseSpeed = 180;
-    } else if (level === 2) { 
-      gridSize = 20; baseSpeed = 190;
-    } else if (level === 3) { 
-      gridSize = 20; baseSpeed = 220;
-    } else if (level === 4) { 
-      gridSize = 20; baseSpeed = 170;
-    }
-    speed = baseSpeed;
-    snake = [
-      {x:Math.floor(gridSize/2),y:Math.floor(gridSize/2)},
-      {x:Math.floor(gridSize/2)-1,y:Math.floor(gridSize/2)},
-      {x:Math.floor(gridSize/2)-2,y:Math.floor(gridSize/2)}
+  function initGame(){
+    clearAllTimer();
+    snake=[
+      {x:Math.floor(GRID_SIZE/2),y:Math.floor(GRID_SIZE/2)},
+      {x:Math.floor(GRID_SIZE/2)-1,y:Math.floor(GRID_SIZE/2)},
+      {x:Math.floor(GRID_SIZE/2)-2,y:Math.floor(GRID_SIZE/2)}
     ];
-    direction = {x:1,y:0};
-    updateScore();
+    mirrorSnake=[
+      {x:Math.floor(GRID_SIZE/2),y:Math.floor(GRID_SIZE/2)},
+      {x:Math.floor(GRID_SIZE/2)+1,y:Math.floor(GRID_SIZE/2)},
+      {x:Math.floor(GRID_SIZE/2)+2,y:Math.floor(GRID_SIZE/2)}
+    ];
+    direction={x:1,y:0};nextDirection={x:1,y:0};score=0;gameTime=0;thisGameGold=0;
+    reverseControl=false;currentObstacles=[];fogRadius=3;
+    if(gameMode==='level'){
+      const lvl=levelConfig[currentLevel];
+      currentSpeed=lvl.baseSpeed;currentObstacles=[...lvl.obstacles];
+    }
+    if(gameMode==='special'){
+      if(currentSpecial===1){currentSpeed=230;gameTime=40}
+      if(currentSpecial===2){currentSpeed=230}
+    }
     food=spawnFood();
     draw();
   }
 
-  function updateScore() {
-    if (isSpecialMode) {
-      scoreElement.innerText = `${langText[lang].special1} ${langText[lang].stage}:${specialStage} | ${langText[lang].score}: ${score}`;
-    } else if (isS2Mode) {
-      scoreElement.innerText = `${langText[lang].special2} | ${langText[lang].score}: ${score} | ${langText[lang].highScore}: ${special2Highscore}`;
-    } else {
-      let label = [langText[lang].tutorial, langText[lang].level1, langText[lang].level2, langText[lang].level3, langText[lang].level4][level];
-      let targetTxt = lang === 'en' ? 'Target' : '目标';
-      let target = [0, LEVEL1_PASS, LEVEL2_PASS, LEVEL3_PASS, LEVEL4_PASS][level];
-      let targetStr = level > 0 ? ` | ${targetTxt}: ${target}` : '';
-      scoreElement.innerText = `${label} | ${langText[lang].score}: ${score}${targetStr}`;
-    }
-  }
-
-  function getRandomColor(){
-    return ['#F44336','#E91E63','#9C27B0','#673AB7','#3F51B5','#2196F3','#00BCD4','#4CAF50','#FFEB3B'][Math.floor(Math.random()*9)];
-  }
-
   function spawnFood(){
     let f;
-    do{
-      f={x:Math.floor(Math.random()*gridSize),y:Math.floor(Math.random()*gridSize),color:getRandomColor()};
-    } while (
-      snake.some(s=>s.x===f.x&&s.y===f.y)
-      || (level===4 && !isSpecialMode && !isS2Mode && level4Obstacles.some(o=>o.x===f.x&&o.y===f.y))
-    );
+    do{f={x:randomInt(0,GRID_SIZE-1),y:randomInt(0,GRID_SIZE-1),color:`hsl(${randomInt(0,360)},80%,50%)`}}
+    while(snake.some(s=>s.x===f.x&&s.y===f.y)||currentObstacles.some(o=>o.x===f.x&&o.y===f.y));
     return f;
   }
 
-  function moveFoodSmart(){
-    if(level!==3||isPaused||isSpecialMode||isS2Mode)return;
-    const h=snake[0]; const d=Math.hypot(h.x-food.x,h.y-food.y);
-    const s=d<4?0.5:d<7?1:1.5;
-    let dx=0,dy=0; Math.random()>0.5?(dx=(Math.random()>.5?1:-1)*s):(dy=(Math.random()>.5?1:-1)*s);
-    const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);
-    if(nx>=0&&nx<gridSize&&ny>=0&&ny<gridSize&&!snake.some(s=>s.x===nx&&s.y===ny)){ food.x=nx;food.y=ny; }
-  }
-
-  function update() {
-    if (isPaused || !isGameStarted) return;
-    const h = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
-
-    if (
-      h.x < 0 || h.x >= gridSize || h.y < 0 || h.y >= gridSize
-      || snake.some((s,i)=>i>0&&s.x===h.x&&s.y===h.y)
-      || (level===4 && !isSpecialMode && !isS2Mode && level4Obstacles.some(o=>o.x===h.x&&o.y===h.y))
-    ) {
-      gameOver();
-      return;
+  function gameUpdate(){
+    if(isPaused||!isGameRunning)return;
+    direction={...nextDirection};
+    if(reverseControl)direction={x:-direction.x,y:-direction.y};
+    const head={x:snake[0].x+direction.x,y:snake[0].y+direction.y};
+    let mhead=null;
+    if(gameMode==='level'&&levelConfig[currentLevel].mirror)mhead={x:mirrorSnake[0].x-direction.x,y:mirrorSnake[0].y+direction.y};
+    if(gameMode==='level'&&levelConfig[currentLevel].portal){
+      const p=portalConfig.find(pp=>pp.x===head.x&&pp.y===head.y);
+      if(p){const t=portalConfig.find(pp=>pp.id===p.target);head.x=t.x;head.y=t.y}
     }
-
-    snake.unshift(h);
-    let ate = false;
-    if (h.x === food.x && h.y === food.y) {
-      score += 10; 
-      updateScore(); 
-      food = spawnFood(); 
-      ate = true;
-      
-      if (isSpecialMode) checkSpecialScore();
-      
-      if (isS2Mode) {
-        speed = Math.max(S2_MIN_SPEED, speed - S2_SPEED_STEP);
-        startGameLoop();
-      }
-
-      if (level === 2 && !isSpecialMode && !isS2Mode) { 
-        speed = Math.max(85, speed - 8); 
-        startGameLoop(); 
-      }
-    } else { 
-      snake.pop(); 
+    if(head.x<0||head.x>=GRID_SIZE||head.y<0||head.y>=GRID_SIZE){handleDeath();return}
+    if(snake.some((s,i)=>i>0&&s.x===head.x&&s.y===head.y)){handleDeath();return}
+    if(currentObstacles.some(o=>o.x===head.x&&o.y===head.y)){handleDeath();return}
+    if(gameMode==='level'&&levelConfig[currentLevel].mirror){
+      if(mhead.x<0||mhead.x>=GRID_SIZE||mhead.y<0||mhead.y>=GRID_SIZE||mirrorSnake.some((s,i)=>i>0&&s.x===mhead.x&&s.y===mhead.y)||snake.some(s=>s.x===mhead.x&&s.y===mhead.y))
+      {handleDeath();return}
     }
-
-    if (!isSpecialMode && !isS2Mode) {
-      if (level === 0 && score >= TUTORIAL_PASS) { 
-        hasDoneTutorial = true; localStorage.setItem('hasDoneTutorial','true'); 
-        tutorialComplete(); 
-        return; 
+    snake.unshift(head);if(gameMode==='level'&&levelConfig[currentLevel].mirror)mirrorSnake.unshift(mhead);
+    let ate=false;
+    if(head.x===food.x&&head.y===food.y){
+      ate=true;score+=10;thisGameGold+=10;food=spawnFood();
+      if(gameMode==='level'){
+        const lvl=levelConfig[currentLevel];
+        if(lvl.speedUp){currentSpeed=Math.max(80,currentSpeed-8);startGameLoop()}
+        if(lvl.dynamicObstacle&&score%50===0){
+          let o;do{o={x:randomInt(0,GRID_SIZE-1),y:randomInt(0,GRID_SIZE-1)}}
+          while(snake.some(s=>s.x===o.x&&s.y===o.y)||currentObstacles.some(oo=>oo.x===o.x&&oo.y===o.y)||(food.x===o.x&&food.y===o.y));
+          currentObstacles.push(o);
+        }
+        if(lvl.reverse&&score%100===0){reverseControl=!reverseControl;showFloatTip(reverseControl?'⚠️方向反转':'✅方向恢复')}
+        if(lvl.fog&&score%50===0)fogRadius=Math.max(1,fogRadius-0.5);
+        if(score>=lvl.target){handleLevelWin();return}
       }
-      if (level === 1 && score >= LEVEL1_PASS) { 
-        unlockedLevel2 = true; localStorage.setItem('unlockedLevel2','true'); 
-        victory(); 
-        return; 
+      if(gameMode==='special'){
+        if(currentSpecial===1){
+          if(score>=80&&gameTime>0){currentSpeed=200;gameTime=60;showFloatTip('阶段2！');startGameLoop()}
+          if(score>=140&&gameTime>0){currentSpeed=170;gameTime=90;showFloatTip('最终阶段！');startGameLoop()}
+        }
+        if(currentSpecial===2){
+          currentSpeed=Math.max(80,currentSpeed-10);startGameLoop();
+          if(score>playerData.s2HighScore){playerData.s2HighScore=score;savePlayerData()}
+        }
       }
-      if (level === 2 && score >= LEVEL2_PASS) { 
-        unlockedLevel3 = true; localStorage.setItem('unlockedLevel3','true'); 
-        victory(); 
-        return; 
-      }
-      if (level === 3 && score >= LEVEL3_PASS) { 
-        unlockedLevel4 = true; localStorage.setItem('unlockedLevel4','true'); 
-        victory(); 
-        return; 
-      }
-      if (level === 4 && score >= LEVEL4_PASS) { 
-        finalWin(); 
-        return; 
-      }
-      if (level === 3 && !ate) setTimeout(moveFoodSmart, 300);
-    }
+    }else{snake.pop();if(gameMode==='level'&&levelConfig[currentLevel].mirror)mirrorSnake.pop()}
+    if(gameMode==='level'&&levelConfig[currentLevel].foodMove&&!ate)moveFood();
     draw();
   }
 
-  function draw() {
-    gameBoard.innerHTML = ''; 
-    const t = document.createElement('div'); 
-    t.className = 'tutorial-text';
-    if (isSpecialMode && specialStage === 1) {
-      t.innerText = langText[lang].specialGoal1;
-    } else if (isSpecialMode && specialStage === 2) {
-      t.innerHTML = langText[lang].specialGoal2.replace('140', '<span style="color:#f44336;">140</span>');
-    } else if (isSpecialMode && specialStage === 3) {
-      t.innerText = langText[lang].specialGoal3;
-    } else if (isS2Mode) {
-      t.innerText = langText[lang].special2Goal;
-    } else if (!isSpecialMode && level === 0) {
-      t.innerText = `${langText[lang].goal}\n${langText[lang].notice}`;
-    } else if (!isSpecialMode && level === 2) {
-      t.innerText = langText[lang].speedNotice;
-    } else if (!isSpecialMode && level === 4) {
-      t.innerText = langText[lang].obstacleNotice;
-    }
-    if (t.innerText || t.innerHTML) gameBoard.appendChild(t);
+  function moveFood(){
+    const h=snake[0];const d=Math.hypot(h.x-food.x,h.y-food.y);
+    const sp=d<4?1:d<7?1.5:2;let dx=0,dy=0;
+    if(Math.abs(h.x-food.x)>Math.abs(h.y-food.y))dx=food.x>h.x?sp:-sp;
+    else dy=food.y>h.y?sp:-sp;
+    const nx=Math.round(food.x+dx),ny=Math.round(food.y+dy);
+    if(nx>=0&&nx<GRID_SIZE&&ny>=0&&ny<GRID_SIZE&&!snake.some(s=>s.x===nx&&s.y===ny)&&!currentObstacles.some(o=>o.x===nx&&o.y===ny))
+    {food.x=nx;food.y=ny}
+  }
 
-    if (level === 4 && !isSpecialMode && !isS2Mode) {
-      level4Obstacles.forEach(obs => {
-        const o = document.createElement('div');
-        o.style.gridColumnStart = obs.x + 1;
-        o.style.gridRowStart = obs.y + 1;
-        o.className = 'obstacle';
-        o.innerText = '❌';
-        gameBoard.appendChild(o);
-      });
+  // 修复：失败 → 金币清空
+  function handleDeath(){
+    isGameRunning = false;
+    clearAllTimer();
+    thisGameGold = 0;
+    pauseBtn.classList.add('hidden');
+    showSettleModal(false);
+  }
+
+  // 修复：胜利 → 才给金币
+  function handleLevelWin(){
+    isGameRunning = false;
+    clearAllTimer();
+    pauseBtn.classList.add('hidden');
+    if(!playerData.passedLevels.includes(currentLevel))playerData.passedLevels.push(currentLevel);
+    if(currentLevel+1<levelConfig.length)playerData.unlockedLevels[currentLevel+1]=true;
+    thisGameGold += 500;
+    savePlayerData();
+    checkSpecialModeLock();
+    showSettleModal(true);
+  }
+
+  function drawCountdown(num){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    draw();
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 80px Arial';
+    ctx.textAlign='center';
+    ctx.fillText(num, canvas.width/2, canvas.height/2+20);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(gameMode==='level'&&levelConfig[currentLevel].fog){
+      ctx.fillStyle='#0f172a';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.save();ctx.beginPath();ctx.arc(snake[0].x*CELL_SIZE+CELL_SIZE/2,snake[0].y*CELL_SIZE+CELL_SIZE/2,fogRadius*CELL_SIZE,0,Math.PI*2);ctx.clip();
+    }
+    ctx.strokeStyle='#334155';ctx.lineWidth=1;
+    for(let i=0;i<=GRID_SIZE;i++){ctx.beginPath();ctx.moveTo(i*CELL_SIZE,0);ctx.lineTo(i*CELL_SIZE,canvas.height);ctx.stroke();}
+    for(let i=0;i<=GRID_SIZE;i++){ctx.beginPath();ctx.moveTo(0,i*CELL_SIZE);ctx.lineTo(canvas.width,i*CELL_SIZE);ctx.stroke();}
+    if(gameMode==='level'&&levelConfig[currentLevel].portal){
+      ctx.fillStyle='#8b5cf6';ctx.shadowBlur=15;ctx.shadowColor='#8b5cf6';
+      portalConfig.forEach(p=>{ctx.fillRect(p.x*CELL_SIZE,p.y*CELL_SIZE,CELL_SIZE,CELL_SIZE)});
+      ctx.shadowBlur=0;
+    }
+    ctx.fillStyle='#ef4444';
+    currentObstacles.forEach(o=>{ctx.fillRect(o.x*CELL_SIZE,o.y*CELL_SIZE,CELL_SIZE,CELL_SIZE)});
+
+    ctx.fillStyle=food.color;ctx.shadowBlur=10;ctx.shadowColor=food.color;
+    ctx.fillRect(food.x*CELL_SIZE+2,food.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4);ctx.shadowBlur=0;
+
+    if(gameMode==='level'&&levelConfig[currentLevel].mirror){
+      mirrorSnake.forEach((seg,i)=>{ctx.fillStyle=i===0?'#9333ea':'#a855f7';ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)});
     }
 
-    snake.forEach((s,i)=>{
-      const e=document.createElement('div');
-      e.style.gridColumnStart = s.x + 1;
-      e.style.gridRowStart = s.y + 1;
-      e.style.backgroundColor = i===0?'#4CAF50':'#8BC34A';
-      gameBoard.appendChild(e);
+    const headSkin=skinConfig.head.find(s=>s.id===playerData.usingSkins.head)||skinConfig.head[0];
+    const bodySkins=playerData.usingSkins.body.map(id=>skinConfig.body.find(s=>s.id===id)||skinConfig.body[0]);
+    const tailSkin=skinConfig.tail.find(s=>s.id===playerData.usingSkins.tail)||skinConfig.tail[0];
+
+    snake.forEach((seg,i)=>{
+      if(i===0){
+        ctx.fillStyle=headSkin.color;ctx.shadowBlur=5;ctx.shadowColor=headSkin.color;
+        ctx.fillRect(seg.x*CELL_SIZE+1,seg.y*CELL_SIZE+1,CELL_SIZE-2,CELL_SIZE-2);ctx.shadowBlur=0;
+        ctx.fillStyle='#fff';
+        if(direction.x===1){ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-8,seg.y*CELL_SIZE+6,4,4);ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-8,seg.y*CELL_SIZE+CELL_SIZE-10,4,4)}
+        else if(direction.x===-1){ctx.fillRect(seg.x*CELL_SIZE+4,seg.y*CELL_SIZE+6,4,4);ctx.fillRect(seg.x*CELL_SIZE+4,seg.y*CELL_SIZE+CELL_SIZE-10,4,4)}
+        else if(direction.y===-1){ctx.fillRect(seg.x*CELL_SIZE+6,seg.y*CELL_SIZE+4,4,4);ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-10,seg.y*CELL_SIZE+4,4,4)}
+        else if(direction.y===1){ctx.fillRect(seg.x*CELL_SIZE+6,seg.y*CELL_SIZE+CELL_SIZE-8,4,4);ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-10,seg.y*CELL_SIZE+CELL_SIZE-8,4,4)}
+      }else if(i===snake.length-1){ctx.fillStyle=tailSkin.color;ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)}
+      else{const bi=(i-1)%bodySkins.length;ctx.fillStyle=bodySkins[bi].color;ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)}
     });
-    const f=document.createElement('div');
-    f.style.gridColumnStart = food.x + 1;
-    f.style.gridRowStart = food.y + 1;
-    f.style.backgroundColor = food.color;
-    f.style.border = '1px solid #fff';
-    gameBoard.appendChild(f);
+    if(gameMode==='level'&&levelConfig[currentLevel].fog)ctx.restore();
+
+    ctx.fillStyle='#ef4444';ctx.font='bold 14px Arial';ctx.textAlign='left';
+    if(gameMode==='level')ctx.fillText(levelConfig[currentLevel].tip, 10, 45);
+    
+    if(gameMode==='level'){
+      ctx.fillStyle='#fff';ctx.font='bold 14px Arial';ctx.textAlign='right';
+      ctx.fillText(`目标: ${levelConfig[currentLevel].target} 分`, canvas.width - 10, 25);
+    }
+    
+    ctx.fillStyle='#fff';ctx.font='16px Arial';ctx.textAlign='left';
+    ctx.fillText(`得分: ${score}`,10,25);
+    if(gameMode==='special' && currentSpecial===1){
+      ctx.fillText(`时间: ${gameTime}`, canvas.width - 80, 25);
+    }
+    if(gameMode==='special'&&currentSpecial===2)ctx.fillText(`最高分: ${playerData.s2HighScore}`,canvas.width-100,25);
+    
+    if(isPaused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fff';ctx.font='bold 32px Arial';ctx.textAlign='center';ctx.fillText('已暂停',canvas.width/2,canvas.height/2)}
   }
 
-  function gameOver(){
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    if (isSpecialMode) {
-      if (score > specialHighscore) {
-        specialHighscore = score;
-        saveSpecialProgress();
+  function togglePause(){if(!isGameRunning)return;isPaused=!isPaused;pauseBtn.textContent=isPaused?'继续':'暂停';if(!isPaused)startGameLoop()}
+  
+  function startGameLoop(){
+    clearAllTimer();
+    if(isGameRunning&&!isPaused){
+      gameLoop = setInterval(gameUpdate, currentSpeed);
+    }
+  }
+  function startGameTimer(){
+    if(gameTimer) clearInterval(gameTimer);
+    if(isGameRunning&&!isPaused && gameMode==='special' && currentSpecial===1){
+      gameTimer = setInterval(()=>{
+        if(isPaused || !isGameRunning) return;
+        gameTime = Math.max(0, gameTime - 1);
+        if(gameTime<=0){ clearAllTimer(); handleDeath(); }
+      },1000);
+    }
+  }
+
+  // 修复：新增 3→2→1 倒计时，彻底解决卡顿
+  function startGame(mode,id){
+    gameMode=mode;
+    if(mode==='level')currentLevel=id;
+    if(mode==='special')currentSpecial=id;
+    
+    hideAllScreens();
+    tutorialModal.classList.add('hidden');
+    pauseBtn.classList.remove('hidden');
+    
+    isGameRunning=false;
+    isPaused=false;
+    pauseBtn.textContent='暂停';
+    
+    initGame();
+
+    // 3 2 1 倒计时
+    let count = 3;
+    drawCountdown(count);
+    countdownTimer = setInterval(()=>{
+      count--;
+      if(count<=0){
+        clearInterval(countdownTimer);
+        isGameRunning=true;
+        startGameLoop();
+        startGameTimer();
+      }else{
+        drawCountdown(count);
       }
-    }
-    if (isS2Mode) {
-      if (score > special2Highscore) {
-        special2Highscore = score;
-        localStorage.setItem('special2Highscore', special2Highscore);
-      }
-    }
-    showModal(langText[lang].gameOver, `${langText[lang].score}: ${score}`, false, true);
+    },800);
   }
 
-  function tutorialComplete(){clearInterval(gameLoop);showModal(langText[lang].tutorialComplete,langText[lang].nextLevel,true,false);}
-  function victory(){clearInterval(gameLoop);showModal(langText[lang].victory,langText[lang].nextLevel,true,false);}
-  function finalWin(){clearInterval(gameLoop);showModal(langText[lang].finalWin,langText[lang].perfect,false,true);}
-
-  function backToMainMenu() {
-    isGameStarted = false;
-    isPaused = false;
-    clearInterval(gameLoop);
-    clearInterval(specialTimer);
-    scoreRow.classList.add('hidden');
-    gameBoard.classList.add('hidden');
-    tips.classList.add('hidden');
-    mainMenu.classList.remove('hidden');
-    pauseBtn.innerHTML = '⏸';
-    pauseBtn.style.background = '#333';
+  function showSettleModal(win){
+    settleModal.classList.remove('hidden');
+    settleTitle.textContent=win?'🎉 关卡通关':'💀 游戏结束';
+    settleDesc.textContent=`本局得分: ${score}`;
+    settleGold.textContent=`本局获得金币: ${thisGameGold}`;
+    nextLevelBtn.style.display=(win&&currentLevel<12)?'inline-block':'none';
+    doubleBtn.disabled = !win;
   }
 
-  function showModal(title,sub,g,r){
-    const m=document.createElement('div');m.className='modal';
-    const tc=title===langText[lang].gameOver?'gameover-text':'victory-text';
-    let extra = '';
-    if (isSpecialMode) {
-      extra = `
-      <div class="star-row">
-        <span class="star ${specialStar1 ? 'active' : ''}">★</span>
-        <span class="star ${specialStar2 ? 'active' : ''}">★</span>
-        <span class="star">${specialHighscore}</span>
-      </div>`;
-    }
-    let btnHtml = '';
-    if(r){
-      btnHtml = `
-        <div style="display:flex; gap:calc(10px * var(--scale)); flex-wrap:wrap; justify-content:center;">
-          <button class="restart-btn">${langText[lang].playAgain}</button>
-          <button class="back-btn">${langText[lang].backToMenu}</button>
-        </div>
-      `;
-    }
-    m.innerHTML=`<div class="${tc}">${title}</div><div class="final-score">${sub}</div>${extra}${btnHtml}`;
-    document.body.appendChild(m);
-    if(r){
-      m.querySelector('.restart-btn').onclick=()=>{
-        document.body.removeChild(m); 
-        isPaused=false; 
-        pauseBtn.innerHTML='⏸'; 
-        pauseBtn.style.background='#F44336';
-        if (isSpecialMode) { 
-          restartCurrentSpecialStage(); 
-        } else if (isS2Mode) {
-          startSpecial2();
-        } else { 
-          score = 0; 
-          resetGame(); 
-          startGameLoop(); 
-        }
-      };
-      m.querySelector('.back-btn').onclick=()=>{ 
-        document.body.removeChild(m); 
-        backToMainMenu(); 
-      };
-    }
-    if(g){ setTimeout(()=>{ document.body.removeChild(m); startCountdown(); },1300); }
-  }
-
-  function startCountdown(){
-    const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="countdown" id="cd">3</div>`;document.body.appendChild(m);
-    const cd=document.getElementById('cd');let n=3;const i=setInterval(()=>{n--;if(n<=0){clearInterval(i);document.body.removeChild(m);level++;localStorage.setItem('savedLevel',level);score=0;resetGame();startGameLoop();}else{cd.innerText=n;}},800);
-  }
-
-  function togglePause(){ if(!isGameStarted)return; isPaused=!isPaused; pauseBtn.innerHTML=isPaused?'▶':'⏸'; pauseBtn.style.background=isPaused?'#4CAF50':'#F44336'; }
-  pauseBtn.onclick=togglePause;
-  function startGameLoop(){clearInterval(gameLoop);gameLoop=setInterval(update,speed);}
-
+  // 事件绑定
+  pauseBtn.addEventListener('click',togglePause);
   document.addEventListener('keydown',e=>{
-    if(e.keyCode===32){togglePause();e.preventDefault();}
-    if(isPaused||!isGameStarted)return;
-    const k=e.keyCode,L=37,U=38,R=39,D=40;
-    if(k===L&&direction.x!==1)direction={x:-1,y:0};
-    if(k===U&&direction.y!==1)direction={x:0,y:-1};
-    if(k===R&&direction.x!==-1)direction={x:1,y:0};
-    if(k===D&&direction.y!==-1)direction={x:0,y:1};
+    if(e.code==='Space'){e.preventDefault();togglePause()}
+    if(!isGameRunning||isPaused)return;
+    if((e.key==='ArrowUp'||e.key==='w'||e.key==='W')&&direction.y!==1)nextDirection={x:0,y:-1};
+    else if((e.key==='ArrowDown'||e.key==='s'||e.key==='S')&&direction.y!==-1)nextDirection={x:0,y:1};
+    else if((e.key==='ArrowLeft'||e.key==='a'||e.key==='A')&&direction.x!==1)nextDirection={x:-1,y:0};
+    else if((e.key==='ArrowRight'||e.key==='d'||e.key==='D')&&direction.x!==-1)nextDirection={x:1,y:0};
   });
 
-  document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; });
-  document.addEventListener('touchend',e=>{
-    if(!isGameStarted||isPaused)return;
-    const dx=e.changedTouches[0].clientX-touchStartX;
-    const dy=e.changedTouches[0].clientY-touchStartY;
+  let tx=0,ty=0;
+  canvas.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY});
+  canvas.addEventListener('touchend',e=>{
+    if(!isGameRunning||isPaused)return;
+    const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
     if(Math.abs(dx)>Math.abs(dy)){
-      if(dx>20&&direction.x!==-1)direction={x:1,y:0};else if(dx<-20&&direction.x!==1)direction={x:-1,y:0};
+      if(dx>0&&direction.x!==-1)nextDirection={x:1,y:0};
+      else if(dx<0&&direction.x!==1)nextDirection={x:-1,y:0};
     }else{
-      if(dy<-20&&direction.y!==1)direction={x:0,y:-1};else if(dy>20&&direction.y!==-1)direction={x:0,y:1};
+      if(dy>0&&direction.y!==-1)nextDirection={x:0,y:1};
+      else if(dy<0&&direction.y!==1)nextDirection={x:0,y:-1};
     }
   });
 
-  function refreshLevelLock() {
-    level1.classList.toggle('locked', !hasDoneTutorial);
-    level1.classList.toggle('active', hasDoneTutorial);
-    level2.classList.toggle('locked', !unlockedLevel2);
-    level2.classList.toggle('active', unlockedLevel2);
-    level3.classList.toggle('locked', !unlockedLevel3);
-    level3.classList.toggle('active', unlockedLevel3);
-    level4.classList.toggle('locked', !unlockedLevel4);
-    level4.classList.toggle('active', unlockedLevel4);
-    modeSpecial.classList.toggle('locked', !unlockedLevel3);
-  }
+  confirmBtn.addEventListener('click',()=>{
+    playerData.gold+=thisGameGold;
+    savePlayerData();
+    settleModal.classList.add('hidden');
+    showScreen(homeScreen);
+  });
+  doubleBtn.addEventListener('click',()=>{thisGameGold*=2;settleGold.textContent=`本局获得金币: ${thisGameGold}`;doubleBtn.disabled=true;doubleBtn.innerText='已翻倍';showFloatTip('奖励翻倍')});
+  restartBtn.addEventListener('click',()=>{
+    settleModal.classList.add('hidden');
+    startGame(gameMode,gameMode==='level'?currentLevel:currentSpecial);
+  });
+  nextLevelBtn.addEventListener('click',()=>{
+    settleModal.classList.add('hidden');
+    startGame('level',currentLevel+1);
+  });
+  homeBtn.addEventListener('click',()=>{
+    settleModal.classList.add('hidden');
+    showScreen(homeScreen);
+  });
 
-  btnEn.onclick = () => setLang('en');
-  btnCn.onclick = () => setLang('cn');
-  setLang(lang);
-  refreshLevelLock();
-  updateComingSoonText();
-  updateGoldCount();
+  startGameBtn.addEventListener('click',()=>{showScreen(modeSelectScreen)});
+  normalModeBtn.addEventListener('click',()=>{showScreen(levelScreen)});
+  specialModeBtn.addEventListener('click',()=>{showScreen(specialScreen)});
+  backFromMode.addEventListener('click',()=>{showScreen(homeScreen)});
+  backFromLevel.addEventListener('click',()=>{showScreen(modeSelectScreen)});
+  backFromSpecial.addEventListener('click',()=>{showScreen(modeSelectScreen)});
+
+  s1Btn.addEventListener('click',()=>{if(s1Btn.classList.contains('active'))showTutorialAndStart('special',1);else showFloatTip('通关前3关解锁')});
+  s2Btn.addEventListener('click',()=>{if(s2Btn.classList.contains('active'))showTutorialAndStart('special',2);else showFloatTip('通关前3关解锁')});
+
+  signBtn.addEventListener('click',()=>{signModal.classList.remove('hidden')});
+  closeSignBtn.addEventListener('click',()=>{signModal.classList.add('hidden')});
+  doSignBtn.addEventListener('click',doSign);
+
+  shopBtn.addEventListener('click',()=>{showScreen(shopScreen)});
+  backFromShop.addEventListener('click',()=>{showScreen(homeScreen)});
+  achievementBtn.addEventListener('click',()=>{showScreen(achievementScreen)});
+  backFromAchievement.addEventListener('click',()=>{showScreen(homeScreen)});
+  rankBtn.addEventListener('click',()=>{showScreen(rankScreen)});
+  backFromRank.addEventListener('click',()=>{showScreen(homeScreen)});
+
+  tabBtns.forEach(btn=>{btn.addEventListener('click',()=>{tabBtns.forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderShopGrid(btn.dataset.tab)})});
+
+  skipTutorial.addEventListener('click',()=>{
+    playerData.hasSeenTutorial=true;
+    localStorage.setItem('hasSeenTutorial','true');
+    tutorialModal.classList.add('hidden');
+    startGame(pendingGameStart.mode,pendingGameStart.id);
+  });
+
+  startWithTutorial.addEventListener('click',()=>{
+    playerData.hasSeenTutorial=true;
+    localStorage.setItem('hasSeenTutorial','true');
+    tutorialModal.classList.add('hidden');
+    startGame(pendingGameStart.mode,pendingGameStart.id);
+  });
+
+  loadPlayerData();
+  updateUI();
+};
 </script>
 </body>
 </html>
