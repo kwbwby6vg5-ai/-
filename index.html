@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>贪吃蛇大作战</title>
+
 <style>
 * {
   margin: 0;
@@ -25,7 +26,9 @@ body {
 }
 .canvas-wrap {
   position: relative;
-  display: block;
+  display: block !important;
+  visibility: visible !important;
+  z-index: 10;
 }
 canvas {
   display: block !important;
@@ -408,7 +411,6 @@ canvas {
     <button class="btn btn-warning btn-small" id="shopBtn">皮肤商店</button>
     <button class="btn btn-warning btn-small" id="achievementBtn">成就</button>
     <button class="btn btn-warning btn-small" id="rankBtn">排行榜</button>
-    <button class="btn btn-warning btn-small" id="resetDataBtn">重置数据</button>
   </div>
 </div>
 
@@ -518,7 +520,6 @@ canvas {
 
 <script>
 window.onload = function() {
-
   // 元素获取
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -545,7 +546,6 @@ window.onload = function() {
   const shopBtn = document.getElementById('shopBtn');
   const achievementBtn = document.getElementById('achievementBtn');
   const rankBtn = document.getElementById('rankBtn');
-  const resetDataBtn = document.getElementById('resetDataBtn');
   const doSignBtn = document.getElementById('doSignBtn');
   const closeSignBtn = document.getElementById('closeSignBtn');
   const doubleBtn = document.getElementById('doubleBtn');
@@ -576,12 +576,13 @@ window.onload = function() {
   let countdownTimer = null;
   let pendingGameStart = null;
 
-  // 玩家数据（永久解锁前3关：教学、1、2关）
+  // 玩家数据（固定数组长度，避免索引错位，永久解锁0、1、2关）
+  const DEFAULT_UNLOCKED_LEVELS = [true, true, true, false, false, false, false, false, false, false, false, false, false];
   let playerData = {
     gold: 0,
     totalSignDays: 0,
     lastSignDate: '',
-    unlockedLevels: [true, true, true, false, false, false, false, false, false, false, false, false, false],
+    unlockedLevels: [...DEFAULT_UNLOCKED_LEVELS],
     passedLevels: [],
     s2HighScore: 0,
     unlockedSkins: { head: ['default'], body: ['default'], tail: ['default'] },
@@ -590,27 +591,55 @@ window.onload = function() {
     hasSeenTutorial: false
   };
 
-  // 【关键修复】强制永久解锁前3关，无视本地缓存
+  // 【重构】本地存储加载逻辑，彻底解决数组覆盖、索引错位问题
   function loadPlayerData() {
-    const saved = localStorage.getItem('snakePlayerData');
-    if (saved) {
-      const savedData = JSON.parse(saved);
-      playerData = { ...playerData, ...savedData };
+    try {
+      const saved = localStorage.getItem('snakePlayerData');
+      if (saved) {
+        const savedData = JSON.parse(saved);
+        // 按需合并，绝不覆盖核心数组结构
+        playerData = {
+          ...playerData,
+          ...savedData,
+          // 强制固定解锁数组长度，和关卡配置一一对应
+          unlockedLevels: savedData.unlockedLevels 
+            ? [...DEFAULT_UNLOCKED_LEVELS.map((val, idx) => savedData.unlockedLevels[idx] ?? val)]
+            : [...DEFAULT_UNLOCKED_LEVELS],
+          // 强制永久解锁0、1、2关，无视任何本地存储
+          passedLevels: Array.isArray(savedData.passedLevels) ? savedData.passedLevels : []
+        };
+      }
+      // 终极保险：强制解锁0、1、2关，永远不会被锁死
+      playerData.unlockedLevels[0] = true;
+      playerData.unlockedLevels[1] = true;
+      playerData.unlockedLevels[2] = true;
+      // 容错处理
+      if (!playerData.unlockedSkins) playerData.unlockedSkins = { head: ['default'], body: ['default'], tail: ['default'] };
+      savePlayerData();
+      checkSpecialModeLock();
+    } catch (e) {
+      // 本地存储异常时，重置为默认数据
+      playerData = {
+        gold: 0,
+        totalSignDays: 0,
+        lastSignDate: '',
+        unlockedLevels: [...DEFAULT_UNLOCKED_LEVELS],
+        passedLevels: [],
+        s2HighScore: 0,
+        unlockedSkins: { head: ['default'], body: ['default'], tail: ['default'] },
+        usingSkins: { head: 'default', body: ['default'], tail: 'default' },
+        achievements: {},
+        hasSeenTutorial: false
+      };
+      savePlayerData();
     }
-    // 强制解锁，永远不会被锁死
-    playerData.unlockedLevels[0] = true;
-    playerData.unlockedLevels[1] = true;
-    playerData.unlockedLevels[2] = true;
-    // 容错处理
-    if (!playerData.passedLevels) playerData.passedLevels = [];
-    if (!playerData.unlockedSkins) playerData.unlockedSkins = { head: ['default'], body: ['default'], tail: ['default'] };
-    savePlayerData();
-    checkSpecialModeLock();
   }
 
   function savePlayerData() {
-    localStorage.setItem('snakePlayerData', JSON.stringify(playerData));
-    updateUI();
+    try {
+      localStorage.setItem('snakePlayerData', JSON.stringify(playerData));
+      updateUI();
+    } catch (e) {}
   }
 
   // 皮肤配置
@@ -636,7 +665,7 @@ window.onload = function() {
     ]
   };
 
-  // 关卡配置（ID和解锁索引一一对应）
+  // 关卡配置（ID和数组索引严格一一对应）
   const levelConfig = [
     { id: 0, name: '教学关', target: 40, baseSpeed: 250, obstacles: [], tip: '教学关：熟悉基础操作' },
     { id: 1, name: '第一关', target: 150, baseSpeed: 180, obstacles: [], tip: '经典模式，无特殊规则' },
@@ -700,7 +729,10 @@ window.onload = function() {
     else{s1Btn.classList.remove('active');s2Btn.classList.remove('active');s1Btn.classList.add('locked');s2Btn.classList.add('locked')}
   }
   function showScreen(el){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));el.classList.remove('hidden')}
-  function hideAllScreens(){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'))}
+  function hideAllScreens(){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+    document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden'));
+  }
 
   // UI更新
   function updateUI(){
@@ -711,38 +743,40 @@ window.onload = function() {
     renderLevelGrid(); renderSignList(); renderAchievementList(); renderShopGrid(currentTab); checkSpecialModeLock();
   }
 
-  // 【关键修复】关卡列表渲染，确保第二关永远可点击
+  // 【重构】关卡列表渲染，彻底解决点击无响应问题
   function renderLevelGrid(){
     levelGrid.innerHTML='';
     // 教学关
     const tut=document.createElement('div');
-    tut.className=`level-block tutorial ${playerData.unlockedLevels[0]?'':'locked'}`;
+    const tutUnlocked = playerData.unlockedLevels[0];
+    tut.className=`level-block tutorial ${tutUnlocked?'':'locked'}`;
     tut.innerText='教学关';
-    tut.onclick=()=>{if(playerData.unlockedLevels[0])showTutorialAndStart('level',0)};
+    tut.onclick=()=>{
+      if(!tutUnlocked) return showFloatTip('关卡未解锁');
+      // 只有教学关会判断是否看过教程
+      pendingGameStart={mode:'level',id:0};
+      if(!playerData.hasSeenTutorial){
+        // 教学关显示跳过关卡按钮
+        skipTutorial.classList.remove('hidden');
+        tutorialModal.classList.remove('hidden');
+      }else{
+        startGame('level',0);
+      }
+    };
     levelGrid.appendChild(tut);
-    // 1-12关
+    // 1-12关渲染
     for(let i=1;i<=12;i++){
       const item=document.createElement('div');
       const isUnlocked = playerData.unlockedLevels[i];
       item.className=`level-block ${isUnlocked?'active':'locked'}`;
       item.innerText=levelConfig[i].name;
+      // 【核心修复】非教学关，直接启动游戏，绝不弹教程，从根源上解决弹窗干扰
       item.onclick=()=>{
-        if(isUnlocked){
-          showTutorialAndStart('level',i);
-        }else{
-          showFloatTip('请先通关前一关解锁');
-        }
-      }
+        if(!isUnlocked) return showFloatTip('请先通关前一关解锁');
+        // 非教学关，无论是否看过教程，都直接启动游戏
+        startGame('level',i);
+      };
       levelGrid.appendChild(item);
-    }
-  }
-
-  function showTutorialAndStart(mode,id){
-    pendingGameStart={mode,id};
-    if(playerData.hasSeenTutorial){
-      startGame(mode,id);
-    }else{
-      tutorialModal.classList.remove('hidden');
     }
   }
 
@@ -806,14 +840,11 @@ window.onload = function() {
     playerData.gold+=1000;playerData.totalSignDays+=1;playerData.lastSignDate=today;savePlayerData();showFloatTip('签到成功！+1000金币');
   }
 
-  // 【彻底修复】清空所有定时器，不留任何残留
+  // 【重构】定时器清空逻辑，彻底解决残留问题
   function clearAllTimer() {
-    // 清空所有可能的定时器
-    for(let i=1;i<9999;i++){
-      clearInterval(i);
-      clearTimeout(i);
-    }
-    // 重置状态
+    if(gameLoop) clearInterval(gameLoop);
+    if(gameTimer) clearInterval(gameTimer);
+    if(countdownTimer) clearInterval(countdownTimer);
     gameLoop = null;
     gameTimer = null;
     countdownTimer = null;
@@ -821,10 +852,9 @@ window.onload = function() {
     isPaused = false;
   }
 
-  // 游戏初始化，全状态重置
+  // 游戏初始化
   function initGame(){
     clearAllTimer();
-    // 重置蛇
     snake=[
       {x:Math.floor(GRID_SIZE/2),y:Math.floor(GRID_SIZE/2)},
       {x:Math.floor(GRID_SIZE/2)-1,y:Math.floor(GRID_SIZE/2)},
@@ -835,7 +865,6 @@ window.onload = function() {
       {x:Math.floor(GRID_SIZE/2)+1,y:Math.floor(GRID_SIZE/2)},
       {x:Math.floor(GRID_SIZE/2)+2,y:Math.floor(GRID_SIZE/2)}
     ];
-    // 重置方向和状态
     direction={x:1,y:0};
     nextDirection={x:1,y:0};
     score=0;
@@ -844,7 +873,6 @@ window.onload = function() {
     reverseControl=false;
     currentObstacles=[];
     fogRadius=3;
-    // 加载关卡配置
     if(gameMode==='level'){
       const lvl=levelConfig[currentLevel];
       currentSpeed=lvl.baseSpeed;
@@ -854,9 +882,7 @@ window.onload = function() {
       if(currentSpecial===1){currentSpeed=230;gameTime=40}
       if(currentSpecial===2){currentSpeed=230}
     }
-    // 生成食物
     food=spawnFood();
-    // 绘制初始画面
     draw();
   }
 
@@ -874,12 +900,10 @@ window.onload = function() {
     const head={x:snake[0].x+direction.x,y:snake[0].y+direction.y};
     let mhead=null;
     if(gameMode==='level'&&levelConfig[currentLevel].mirror)mhead={x:mirrorSnake[0].x-direction.x,y:mirrorSnake[0].y+direction.y};
-    // 传送门逻辑
     if(gameMode==='level'&&levelConfig[currentLevel].portal){
       const p=portalConfig.find(pp=>pp.x===head.x&&pp.y===head.y);
       if(p){const t=portalConfig.find(pp=>pp.id===p.target);head.x=t.x;head.y=t.y}
     }
-    // 碰撞检测
     if(head.x<0||head.x>=GRID_SIZE||head.y<0||head.y>=GRID_SIZE){handleDeath();return}
     if(snake.some((s,i)=>i>0&&s.x===head.x&&s.y===head.y)){handleDeath();return}
     if(currentObstacles.some(o=>o.x===head.x&&o.y===head.y)){handleDeath();return}
@@ -887,17 +911,14 @@ window.onload = function() {
       if(mhead.x<0||mhead.x>=GRID_SIZE||mhead.y<0||mhead.y>=GRID_SIZE||mirrorSnake.some((s,i)=>i>0&&s.x===mhead.x&&s.y===mhead.y)||snake.some(s=>s.x===mhead.x&&s.y===mhead.y))
       {handleDeath();return}
     }
-    // 移动蛇
     snake.unshift(head);
     if(gameMode==='level'&&levelConfig[currentLevel].mirror)mirrorSnake.unshift(mhead);
-    // 吃食物逻辑
     let ate=false;
     if(head.x===food.x&&head.y===food.y){
       ate=true;
       score+=10;
       thisGameGold+=10;
       food=spawnFood();
-      // 关卡特殊逻辑
       if(gameMode==='level'){
         const lvl=levelConfig[currentLevel];
         if(lvl.speedUp){currentSpeed=Math.max(80,currentSpeed-8);startGameLoop()}
@@ -908,10 +929,8 @@ window.onload = function() {
         }
         if(lvl.reverse&&score%100===0){reverseControl=!reverseControl;showFloatTip(reverseControl?'⚠️方向反转':'✅方向恢复')}
         if(lvl.fog&&score%50===0)fogRadius=Math.max(1,fogRadius-0.5);
-        // 胜利判断
         if(score>=lvl.target){handleLevelWin();return}
       }
-      // 特殊模式逻辑
       if(gameMode==='special'){
         if(currentSpecial===1){
           if(score>=80&&gameTime>0){currentSpeed=200;gameTime=60;showFloatTip('阶段2！');startGameLoop()}
@@ -926,9 +945,7 @@ window.onload = function() {
       snake.pop();
       if(gameMode==='level'&&levelConfig[currentLevel].mirror)mirrorSnake.pop();
     }
-    // 食物移动逻辑
     if(gameMode==='level'&&levelConfig[currentLevel].foodMove&&!ate)moveFood();
-    // 重绘画面
     draw();
   }
 
@@ -942,7 +959,6 @@ window.onload = function() {
     {food.x=nx;food.y=ny}
   }
 
-  // 失败处理
   function handleDeath(){
     clearAllTimer();
     thisGameGold = 0;
@@ -951,23 +967,18 @@ window.onload = function() {
     showSettleModal(false);
   }
 
-  // 胜利处理
   function handleLevelWin(){
     clearAllTimer();
     pauseBtn.classList.add('hidden');
-    // 标记通关+解锁下一关
     if(!playerData.passedLevels.includes(currentLevel))playerData.passedLevels.push(currentLevel);
     if(currentLevel+1<levelConfig.length)playerData.unlockedLevels[currentLevel+1]=true;
-    // 奖励金币
     thisGameGold += 500;
     savePlayerData();
     checkSpecialModeLock();
-    // 显示按钮
     doubleBtn.style.display = 'inline-block';
     showSettleModal(true);
   }
 
-  // 倒计时绘制
   function drawCountdown(num){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     draw();
@@ -979,44 +990,34 @@ window.onload = function() {
     ctx.fillText(num, canvas.width/2, canvas.height/2+20);
   }
 
-  // 游戏绘制
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // 迷雾模式
     if(gameMode==='level'&&levelConfig[currentLevel].fog){
       ctx.fillStyle='#0f172a';ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.save();ctx.beginPath();ctx.arc(snake[0].x*CELL_SIZE+CELL_SIZE/2,snake[0].y*CELL_SIZE+CELL_SIZE/2,fogRadius*CELL_SIZE,0,Math.PI*2);ctx.clip();
     }
-    // 网格线
     ctx.strokeStyle='#334155';ctx.lineWidth=1;
     for(let i=0;i<=GRID_SIZE;i++){ctx.beginPath();ctx.moveTo(i*CELL_SIZE,0);ctx.lineTo(i*CELL_SIZE,canvas.height);ctx.stroke();}
     for(let i=0;i<=GRID_SIZE;i++){ctx.beginPath();ctx.moveTo(0,i*CELL_SIZE);ctx.lineTo(canvas.width,i*CELL_SIZE);ctx.stroke();}
-    // 传送门
     if(gameMode==='level'&&levelConfig[currentLevel].portal){
       ctx.fillStyle='#8b5cf6';ctx.shadowBlur=15;ctx.shadowColor='#8b5cf6';
       portalConfig.forEach(p=>{ctx.fillRect(p.x*CELL_SIZE,p.y*CELL_SIZE,CELL_SIZE,CELL_SIZE)});
       ctx.shadowBlur=0;
     }
-    // 障碍物
     ctx.fillStyle='#ef4444';
     currentObstacles.forEach(o=>{ctx.fillRect(o.x*CELL_SIZE,o.y*CELL_SIZE,CELL_SIZE,CELL_SIZE)});
-    // 食物
     ctx.fillStyle=food.color;ctx.shadowBlur=10;ctx.shadowColor=food.color;
     ctx.fillRect(food.x*CELL_SIZE+2,food.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4);ctx.shadowBlur=0;
-    // 镜像蛇
     if(gameMode==='level'&&levelConfig[currentLevel].mirror){
       mirrorSnake.forEach((seg,i)=>{ctx.fillStyle=i===0?'#9333ea':'#a855f7';ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)});
     }
-    // 玩家蛇皮肤
     const headSkin=skinConfig.head.find(s=>s.id===playerData.usingSkins.head)||skinConfig.head[0];
     const bodySkins=playerData.usingSkins.body.map(id=>skinConfig.body.find(s=>s.id===id)||skinConfig.body[0]);
     const tailSkin=skinConfig.tail.find(s=>s.id===playerData.usingSkins.tail)||skinConfig.tail[0];
-    // 绘制蛇
     snake.forEach((seg,i)=>{
       if(i===0){
         ctx.fillStyle=headSkin.color;ctx.shadowBlur=5;ctx.shadowColor=headSkin.color;
         ctx.fillRect(seg.x*CELL_SIZE+1,seg.y*CELL_SIZE+1,CELL_SIZE-2,CELL_SIZE-2);ctx.shadowBlur=0;
-        // 蛇眼睛
         ctx.fillStyle='#fff';
         if(direction.x===1){ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-8,seg.y*CELL_SIZE+6,4,4);ctx.fillRect(seg.x*CELL_SIZE+CELL_SIZE-8,seg.y*CELL_SIZE+CELL_SIZE-10,4,4)}
         else if(direction.x===-1){ctx.fillRect(seg.x*CELL_SIZE+4,seg.y*CELL_SIZE+6,4,4);ctx.fillRect(seg.x*CELL_SIZE+4,seg.y*CELL_SIZE+CELL_SIZE-10,4,4)}
@@ -1025,32 +1026,24 @@ window.onload = function() {
       }else if(i===snake.length-1){ctx.fillStyle=tailSkin.color;ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)}
       else{const bi=(i-1)%bodySkins.length;ctx.fillStyle=bodySkins[bi].color;ctx.fillRect(seg.x*CELL_SIZE+2,seg.y*CELL_SIZE+2,CELL_SIZE-4,CELL_SIZE-4)}
     });
-    // 结束迷雾裁剪
     if(gameMode==='level'&&levelConfig[currentLevel].fog)ctx.restore();
-    // 关卡提示
     ctx.fillStyle='#ef4444';ctx.font='bold 14px Arial';ctx.textAlign='left';
     if(gameMode==='level')ctx.fillText(levelConfig[currentLevel].tip, 10, 45);
-    // 目标分数
     if(gameMode==='level'){
       ctx.fillStyle='#fff';ctx.font='bold 14px Arial';ctx.textAlign='right';
       ctx.fillText(`目标: ${levelConfig[currentLevel].target} 分`, canvas.width - 10, 25);
     }
-    // 当前分数
     ctx.fillStyle='#fff';ctx.font='16px Arial';ctx.textAlign='left';
     ctx.fillText(`得分: ${score}`,10,25);
-    // 特殊模式时间/最高分
     if(gameMode==='special' && currentSpecial===1){
       ctx.fillText(`时间: ${gameTime}`, canvas.width - 80, 25);
     }
     if(gameMode==='special'&&currentSpecial===2)ctx.fillText(`最高分: ${playerData.s2HighScore}`,canvas.width-100,25);
-    // 暂停遮罩
     if(isPaused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fff';ctx.font='bold 32px Arial';ctx.textAlign='center';ctx.fillText('已暂停',canvas.width/2,canvas.height/2)}
   }
 
-  // 暂停/继续
   function togglePause(){if(!isGameRunning)return;isPaused=!isPaused;pauseBtn.textContent=isPaused?'继续':'暂停';if(!isPaused)startGameLoop()}
   
-  // 游戏主循环启动
   function startGameLoop(){
     if(gameLoop) clearInterval(gameLoop);
     if(isGameRunning&&!isPaused){
@@ -1058,7 +1051,6 @@ window.onload = function() {
     }
   }
 
-  // 游戏计时器
   function startGameTimer(){
     if(gameTimer) clearInterval(gameTimer);
     if(isGameRunning&&!isPaused && gameMode==='special' && currentSpecial===1){
@@ -1070,21 +1062,19 @@ window.onload = function() {
     }
   }
 
-  // 【关键修复】游戏启动，强制显示画布，确保第二关能看到
+  // 【重构】游戏启动逻辑，彻底解决界面遮挡问题
   function startGame(mode,id){
     clearAllTimer();
-    // 强制设置关卡ID
     gameMode=mode;
     if(mode==='level')currentLevel = id;
     if(mode==='special')currentSpecial = id;
-    // 隐藏所有界面，强制显示游戏画布
+    // 强制隐藏所有页面和弹窗，100%保证游戏画布可见
     hideAllScreens();
-    tutorialModal.classList.add('hidden');
-    settleModal.classList.add('hidden');
-    canvas.style.display = 'block';
-    canvas.style.visibility = 'visible';
+    // 强制显示游戏容器
+    document.querySelector('.canvas-wrap').style.display='block';
+    document.querySelector('.canvas-wrap').style.visibility='visible';
     pauseBtn.classList.remove('hidden');
-    // 重置游戏状态
+    // 重置状态
     isGameRunning=false;
     isPaused=false;
     pauseBtn.textContent='暂停';
@@ -1106,7 +1096,6 @@ window.onload = function() {
     },800);
   }
 
-  // 结算弹窗
   function showSettleModal(win){
     settleModal.classList.remove('hidden');
     settleTitle.textContent=win?'🎉 关卡通关':'💀 游戏结束';
@@ -1142,21 +1131,18 @@ window.onload = function() {
     }
   });
 
-  // 【彻底修复】下一关按钮，100%跳转成功
+  // 【重构】下一关按钮逻辑，彻底解决跳转失败问题
   nextLevelBtn.addEventListener('click',()=>{
     playerData.gold += thisGameGold;
     const nextLvl = currentLevel + 1;
     playerData.unlockedLevels[nextLvl] = true;
     savePlayerData();
-    // 关闭弹窗，清空状态，启动下一关
     settleModal.classList.add('hidden');
     clearAllTimer();
-    setTimeout(()=>{
-      startGame('level', nextLvl);
-    },100);
+    // 延迟启动，保证DOM状态完全更新
+    setTimeout(()=>startGame('level', nextLvl),100);
   });
 
-  // 奖励翻倍
   doubleBtn.addEventListener('click',()=>{
     thisGameGold *= 2;
     settleGold.textContent=`本局获得金币: ${thisGameGold}`;
@@ -1165,7 +1151,6 @@ window.onload = function() {
     showFloatTip('奖励翻倍');
   });
 
-  // 再来一局
   restartBtn.addEventListener('click',()=>{
     playerData.gold += thisGameGold;
     savePlayerData();
@@ -1174,7 +1159,6 @@ window.onload = function() {
     startGame(gameMode,gameMode==='level'?currentLevel:currentSpecial);
   });
 
-  // 返回主页
   homeBtn.addEventListener('click',()=>{
     playerData.gold += thisGameGold;
     savePlayerData();
@@ -1183,7 +1167,7 @@ window.onload = function() {
     showScreen(homeScreen);
   });
 
-  // 主页按钮事件
+  // 页面跳转事件
   startGameBtn.addEventListener('click',()=>{showScreen(modeSelectScreen)});
   normalModeBtn.addEventListener('click',()=>{showScreen(levelScreen)});
   specialModeBtn.addEventListener('click',()=>{showScreen(specialScreen)});
@@ -1192,28 +1176,13 @@ window.onload = function() {
   backFromSpecial.addEventListener('click',()=>{showScreen(modeSelectScreen)});
 
   // 特殊模式按钮
-  s1Btn.addEventListener('click',()=>{if(s1Btn.classList.contains('active'))showTutorialAndStart('special',1);else showFloatTip('通关前3关解锁')});
-  s2Btn.addEventListener('click',()=>{if(s2Btn.classList.contains('active'))showTutorialAndStart('special',2);else showFloatTip('通关前3关解锁')});
+  s1Btn.addEventListener('click',()=>{if(s1Btn.classList.contains('active'))startGame('special',1);else showFloatTip('通关前3关解锁')});
+  s2Btn.addEventListener('click',()=>{if(s2Btn.classList.contains('active'))startGame('special',2);else showFloatTip('通关前3关解锁')});
 
   // 签到按钮
   signBtn.addEventListener('click',()=>{signModal.classList.remove('hidden')});
   closeSignBtn.addEventListener('click',()=>{signModal.classList.add('hidden')});
   doSignBtn.addEventListener('click',doSign);
-
-  // 【修复】重置数据按钮，彻底清空缓存
-  resetDataBtn.addEventListener('click',()=>{
-    localStorage.removeItem('snakePlayerData');
-    playerData = {
-      gold:0,totalSignDays:0,lastSignDate:'',
-      unlockedLevels:[true,true,true,false,false,false,false,false,false,false,false,false,false],
-      passedLevels:[],s2HighScore:0,
-      unlockedSkins:{head:['default'],body:['default'],tail:['default']},
-      usingSkins:{head:'default',body:['default'],tail:'default'},
-      achievements:{},hasSeenTutorial:false
-    };
-    savePlayerData();
-    showFloatTip('数据重置成功！');
-  });
 
   // 商店、成就、排行榜按钮
   shopBtn.addEventListener('click',()=>{showScreen(shopScreen)});
@@ -1230,21 +1199,26 @@ window.onload = function() {
     renderShopGrid(btn.dataset.tab);
   })});
 
-  // 教程弹窗按钮
+  // 【重构】教程弹窗逻辑，严格限制跳过关卡仅用于教学关
   skipTutorial.addEventListener('click',()=>{
-    playerData.hasSeenTutorial = true;
-    tutorialModal.classList.add('hidden');
-    if(pendingGameStart.mode === 'level'){
-      const lid = pendingGameStart.id;
-      if(!playerData.passedLevels.includes(lid))playerData.passedLevels.push(lid);
-      if(lid+1<levelConfig.length)playerData.unlockedLevels[lid+1]=true;
-      savePlayerData();
-      showFloatTip('已跳过关卡！');
-      showScreen(levelScreen);
+    // 只有教学关才能执行跳过关卡逻辑
+    if(!pendingGameStart || pendingGameStart.mode!=='level' || pendingGameStart.id!==0){
+      tutorialModal.classList.add('hidden');
+      return;
     }
+    // 仅教学关标记已看教程、标记通关
+    playerData.hasSeenTutorial = true;
+    const lid = pendingGameStart.id;
+    if(!playerData.passedLevels.includes(lid))playerData.passedLevels.push(lid);
+    if(lid+1<levelConfig.length)playerData.unlockedLevels[lid+1]=true;
+    savePlayerData();
+    tutorialModal.classList.add('hidden');
+    showFloatTip('已跳过教学关！');
+    showScreen(levelScreen);
   });
 
   startWithTutorial.addEventListener('click',()=>{
+    if(!pendingGameStart) return;
     playerData.hasSeenTutorial=true;
     tutorialModal.classList.add('hidden');
     startGame(pendingGameStart.mode,pendingGameStart.id);
