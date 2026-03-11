@@ -594,7 +594,7 @@ window.onload = function() {
   // 【重构】本地存储加载逻辑，彻底解决数组覆盖、索引错位问题
   function loadPlayerData() {
     try {
-      const saved = localStorage.getItem('snakePlayerData');
+      const saved = localStorage.getItem('snakePlayerData_v2');
       if (saved) {
         const savedData = JSON.parse(saved);
         // 按需合并，绝不覆盖核心数组结构
@@ -637,7 +637,7 @@ window.onload = function() {
 
   function savePlayerData() {
     try {
-      localStorage.setItem('snakePlayerData', JSON.stringify(playerData));
+      localStorage.setItem('snakePlayerData_v2', JSON.stringify(playerData));
       updateUI();
     } catch (e) {}
   }
