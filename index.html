@@ -744,41 +744,56 @@ window.onload = function() {
   }
 
   // 【重构】关卡列表渲染，彻底解决点击无响应问题
-  function renderLevelGrid(){
-    levelGrid.innerHTML='';
-    // 教学关
-    const tut=document.createElement('div');
-    const tutUnlocked = playerData.unlockedLevels[0];
-    tut.className=`level-block tutorial ${tutUnlocked?'':'locked'}`;
-    tut.innerText='教学关';
-    tut.onclick=()=>{
-      if(!tutUnlocked) return showFloatTip('关卡未解锁');
-      // 只有教学关会判断是否看过教程
-      pendingGameStart={mode:'level',id:0};
-      if(!playerData.hasSeenTutorial){
-        // 教学关显示跳过关卡按钮
-        skipTutorial.classList.remove('hidden');
-        tutorialModal.classList.remove('hidden');
-      }else{
-        startGame('level',0);
-      }
-    };
-    levelGrid.appendChild(tut);
     // 1-12关渲染
-    for(let i=1;i<=12;i++){
-      const item=document.createElement('div');
-      const isUnlocked = playerData.unlockedLevels[i];
-      item.className=`level-block ${isUnlocked?'active':'locked'}`;
-      item.innerText=levelConfig[i].name;
-      // 【核心修复】非教学关，直接启动游戏，绝不弹教程，从根源上解决弹窗干扰
-      item.onclick=()=>{
-        if(!isUnlocked) return showFloatTip('请先通关前一关解锁');
-        // 非教学关，无论是否看过教程，都直接启动游戏
-        startGame('level',i);
-      };
-      levelGrid.appendChild(item);
+  function renderLevelGrid(){
+
+  levelGrid.innerHTML='';
+
+  // 教学关
+  const tut=document.createElement('div');
+  const tutUnlocked = playerData.unlockedLevels[0];
+
+  tut.className=`level-block tutorial ${tutUnlocked?'':'locked'}`;
+  tut.innerText='教学关';
+
+  tut.onclick=()=>{
+    if(!tutUnlocked) return showFloatTip('关卡未解锁');
+
+    pendingGameStart={mode:'level',id:0};
+
+    if(!playerData.hasSeenTutorial){
+      skipTutorial.classList.remove('hidden');
+      tutorialModal.classList.remove('hidden');
+    }else{
+      startGame('level',0);
     }
+  };
+
+  levelGrid.appendChild(tut);
+
+  // 普通关卡
+  for(let i=1;i<levelConfig.length;i++){
+
+    const item=document.createElement('div');
+    const isUnlocked = playerData.unlockedLevels[i];
+
+    item.className=`level-block ${isUnlocked?'':'locked'}`;
+    item.innerText=`第${i}关`;
+
+    item.onclick=()=>{
+      if(!isUnlocked){
+        showFloatTip('关卡未解锁');
+        return;
+      }
+
+      startGame('level', i);
+    };
+
+    levelGrid.appendChild(item);
+
   }
+
+}
 
   function renderSignList(){
     const list=document.getElementById('signList');list.innerHTML='';
